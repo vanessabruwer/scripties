@@ -1,0 +1,205 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 1,
+      "content": {
+        "json": "<h1>Azure Subscription Limits</h1>"
+      },
+      "name": "text - 2"
+    },
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "crossComponentResources": [
+          "value::selected"
+        ],
+        "parameters": [
+          {
+            "id": "97ceab4f-bb6a-464f-8307-d0d4c10e0864",
+            "version": "KqlParameterItem/1.0",
+            "name": "Workspace",
+            "type": 5,
+            "isRequired": true,
+            "multiSelect": true,
+            "quote": "'",
+            "delimiter": ",",
+            "query": "where type =~ 'microsoft.operationalinsights/workspaces'\r\n| summarize by id, name",
+            "crossComponentResources": [
+              "value::selected"
+            ],
+            "value": [
+              "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765/resourceGroups/northwind-vb/providers/Microsoft.OperationalInsights/workspaces/NW-LA-Demo"
+            ],
+            "typeSettings": {
+              "resourceTypeFilter": {
+                "microsoft.operationalinsights/workspaces": true
+              },
+              "additionalResourceOptions": []
+            },
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources"
+          }
+        ],
+        "style": "above",
+        "queryType": 1,
+        "resourceType": "microsoft.resourcegraph/resources"
+      },
+      "name": "parameters - 3"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureQuota_CL\r\n| summarize arg_max(TimeGenerated, *) by Name_s, Subscription_s, Location_s, Category, Limit_d, CurrentValue_d, Usage_d\r\n| project TimeGenerated, Name_s, Subscription_s, Location_s, Category, Limit_d, CurrentValue_d, PercUsage = Usage_d*100\r\n| where PercUsage > 0\r\n| order by PercUsage desc\r\n| take 5",
+        "size": 0,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "visualization": "barchart",
+        "chartSettings": {
+          "xAxis": "Name_s",
+          "yAxis": [
+            "PercUsage"
+          ],
+          "ySettings": {
+            "min": null,
+            "max": 100
+          }
+        }
+      },
+      "name": "query - 1"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureQuota_CL\r\n| summarize arg_max(TimeGenerated, *) by Name_s, Subscription_s, Location_s, Category, Limit_d, CurrentValue_d, Usage_d\r\n| project TimeGenerated, Name_s, Subscription_s, Location_s, Category, Limit_d, CurrentValue_d, Usage_d\r\n| order by Usage_d desc ",
+        "size": 0,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "TimeGenerated",
+              "formatter": 0,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "Name_s",
+              "formatter": 0,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "Subscription_s",
+              "formatter": 0,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "Location_s",
+              "formatter": 0,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "Category",
+              "formatter": 0,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "Limit_d",
+              "formatter": 0,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "CurrentValue_d",
+              "formatter": 0,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "Usage_d",
+              "formatter": 4,
+              "formatOptions": {
+                "palette": "hotCold",
+                "showIcon": true
+              },
+              "numberFormat": {
+                "unit": 0,
+                "options": {
+                  "style": "percent"
+                }
+              }
+            }
+          ],
+          "sortBy": [
+            {
+              "itemKey": "$gen_bar_Usage_d_7",
+              "sortOrder": 2
+            }
+          ],
+          "labelSettings": [
+            {
+              "columnId": "TimeGenerated",
+              "label": "TimeGenerated"
+            },
+            {
+              "columnId": "Name_s",
+              "label": "Resource Type"
+            },
+            {
+              "columnId": "Subscription_s",
+              "label": "Subscription"
+            },
+            {
+              "columnId": "Location_s",
+              "label": "Location"
+            },
+            {
+              "columnId": "Category",
+              "label": "Category"
+            },
+            {
+              "columnId": "Limit_d",
+              "label": "Limit"
+            },
+            {
+              "columnId": "CurrentValue_d",
+              "label": "CurrentValue"
+            },
+            {
+              "columnId": "Usage_d",
+              "label": "Usage %"
+            }
+          ]
+        },
+        "sortBy": [
+          {
+            "itemKey": "$gen_bar_Usage_d_7",
+            "sortOrder": 2
+          }
+        ]
+      },
+      "name": "query - 0"
+    }
+  ],
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}
