@@ -197,7 +197,7 @@
                             "azureloganalyticsdatacollector": {
                                 "connectionId": "[parameters('connections_azureloganalyticsdatacollector_externalid')]",
                                 "connectionName": "azureloganalyticsdatacollector",
-                                "id": "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765/providers/Microsoft.Web/locations/westeurope/managedApis/azureloganalyticsdatacollector"
+                                "id": """
                             }
                         }
                     }
