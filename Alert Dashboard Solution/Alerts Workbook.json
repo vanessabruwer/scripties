@@ -1,0 +1,198 @@
+{
+    "version": "Notebook/1.0",
+    "items": [
+      {
+        "type": 9,
+        "content": {
+          "version": "KqlParameterItem/1.0",
+          "crossComponentResources": [
+            "{Subscriptions}"
+          ],
+          "parameters": [
+            {
+              "id": "92b509b0-fecf-41a8-a20a-2da2c90f9ab1",
+              "version": "KqlParameterItem/1.0",
+              "name": "Subscriptions",
+              "type": 6,
+              "multiSelect": true,
+              "quote": "'",
+              "delimiter": ",",
+              "query": "summarize by subscriptionId\r\n| project value = strcat('/subscriptions/', subscriptionId), label = subscriptionId",
+              "crossComponentResources": [
+                "value::selected"
+              ],
+              "value": [
+                "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765"
+              ],
+              "typeSettings": {
+                "additionalResourceOptions": []
+              },
+              "queryType": 1,
+              "resourceType": "microsoft.resourcegraph/resources"
+            },
+            {
+              "id": "141a249f-d9a7-4132-84c0-3c77232976df",
+              "version": "KqlParameterItem/1.0",
+              "name": "Workspaces",
+              "type": 5,
+              "multiSelect": true,
+              "quote": "'",
+              "delimiter": ",",
+              "query": "where type =~ 'microsoft.operationalinsights/workspaces'\r\n| summarize by id, name\r\n| project id",
+              "crossComponentResources": [
+                "{Subscriptions}"
+              ],
+              "value": [
+                "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765/resourceGroups/northwind-vb/providers/Microsoft.OperationalInsights/workspaces/NW-LA-Demo"
+              ],
+              "typeSettings": {
+                "additionalResourceOptions": []
+              },
+              "queryType": 1,
+              "resourceType": "microsoft.resourcegraph/resources"
+            },
+            {
+              "id": "e1f51bf3-bd66-46f9-921a-c10b64056ef7",
+              "version": "KqlParameterItem/1.0",
+              "name": "TimeRange",
+              "type": 4,
+              "value": {
+                "durationMs": 14400000
+              },
+              "typeSettings": {
+                "selectableValues": [
+                  {
+                    "durationMs": 3600000
+                  },
+                  {
+                    "durationMs": 14400000
+                  },
+                  {
+                    "durationMs": 43200000
+                  },
+                  {
+                    "durationMs": 86400000
+                  },
+                  {
+                    "durationMs": 172800000
+                  },
+                  {
+                    "durationMs": 259200000
+                  },
+                  {
+                    "durationMs": 604800000
+                  },
+                  {
+                    "durationMs": 1209600000
+                  },
+                  {
+                    "durationMs": 2419200000
+                  },
+                  {
+                    "durationMs": 2592000000
+                  },
+                  {
+                    "durationMs": 5184000000
+                  },
+                  {
+                    "durationMs": 7776000000
+                  }
+                ]
+              }
+            }
+          ],
+          "style": "pills",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces"
+        },
+        "name": "parameters - 3"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "<h1>Alerts from Logs</h1>\r\nNote: This reads from the Alerts_CL log, and depends on the Logic App response detailed <a href=\"https://cloudbunnies.wordpress.com/2019/11/04/azuremonitor-building-an-enriched-alerts-dashboard-with-logicapps-and-loganalytics-data-collector-api/\" target=\"_blank\">here</a>"
+        },
+        "name": "text - 2"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "Alerts_CL \r\n| where ComputerName_s != \"\"\r\n| summarize AlertCount = count() by ComputerName_s, AlertRuleName_s \r\n| sort by AlertCount desc ",
+          "size": 0,
+          "title": "Alerts per Machine",
+          "timeContext": {
+            "durationMs": 0
+          },
+          "timeContextFromParameter": "TimeRange",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspaces}"
+          ],
+          "visualization": "barchart"
+        },
+        "name": "Alerts-Graph"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "Alerts_CL \r\n| where ComputerName_s != \"\"\r\n| summarize AlertCount = count() by ComputerName_s, AlertRuleName_s \r\n| sort by AlertCount desc ",
+          "size": 0,
+          "title": "Alerts Detail",
+          "timeContext": {
+            "durationMs": 0
+          },
+          "timeContextFromParameter": "TimeRange",
+          "showExportToExcel": true,
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspaces}"
+          ],
+          "gridSettings": {
+            "formatters": [
+              {
+                "columnMatch": "ComputerName_s",
+                "formatter": 0,
+                "formatOptions": {
+                  "showIcon": true
+                }
+              },
+              {
+                "columnMatch": "AlertRuleName_s",
+                "formatter": 0,
+                "formatOptions": {
+                  "showIcon": true
+                }
+              },
+              {
+                "columnMatch": "AlertCount",
+                "formatter": 3,
+                "formatOptions": {
+                  "showIcon": true
+                }
+              }
+            ],
+            "labelSettings": [
+              {
+                "columnId": "ComputerName_s",
+                "label": "Computer"
+              },
+              {
+                "columnId": "AlertRuleName_s",
+                "label": "Alert"
+              },
+              {
+                "columnId": "AlertCount",
+                "label": "Count"
+              }
+            ]
+          }
+        },
+        "name": "AlertsTable"
+      }
+    ],
+    "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+  }
