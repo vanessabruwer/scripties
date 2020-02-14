@@ -8,14 +8,14 @@
     },
     "azureloganalyticsdatacollector_1_Connection_DisplayName": {
       "type": "string",
-      "defaultValue": "NW-LA"
+      "defaultValue": "Logs Connection"
     },
     "azureloganalyticsdatacollector_1_username": {
       "type": "string",
       "metadata": {
         "description": "The unique identifier of the Azure Log Analytics workspace."
       },
-      "defaultValue": "7bfdae32-4c43-4d1c-ab07-39dfa2483051"
+      "defaultValue": "Workspace Key"
     },
     "azureloganalyticsdatacollector_1_password": {
       "type": "securestring",
@@ -64,7 +64,7 @@
     "LogicAppName": {
       "type": "string",
       "minLength": 1,
-      "defaultValue": "NW-LA-Email-LogAlert"
+      "defaultValue": "Alerts-to-Logs"
     }
   },
   "variables": {},
