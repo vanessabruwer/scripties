@@ -7,7 +7,7 @@
         "type": "string"
       },
       "LogAnalyticsConnection": {
-        "defaultValue": "[Microsoft.OperationalInsights/workspaces]",
+        "defaultValue": "Your Workspace Name",
         "type": "string"
       },
       "logicAppLocation": {
