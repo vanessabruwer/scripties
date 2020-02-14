@@ -5,9 +5,15 @@
     "LogicAppName": {
       "defaultValue": "Alert-to-Log",
       "type": "string"
-    }
+    },
+    "WorkspaceConnectionName": {
+      "defaultValue": "LogAnalyticsConnectionName",
+      "type": "string"
+  }
   },
-  "variables": {},
+  "variables": {
+    "connections_azureloganalyticsdatacollector_externalid": "[parameters('WorkspaceConnectionName')]"
+  },
   "resources": [
       {
           "type": "Microsoft.Logic/workflows",
