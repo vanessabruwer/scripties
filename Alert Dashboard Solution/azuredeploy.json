@@ -6,8 +6,8 @@
         "defaultValue": "Alert-to-Log",
         "type": "string"
       },
-      "connections_azureloganalyticsdatacollector_externalid": {
-        "defaultValue": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/providers/Microsoft.Web/connections/azureloganalyticsdatacollector",
+      "LogAnalyticsConnection": {
+        "defaultValue": "[Microsoft.OperationalInsights/workspaces]",
         "type": "string"
       },
       "logicAppLocation": {
@@ -198,7 +198,7 @@
                             },
                             "host": {
                               "connection": {
-                                "name": "@parameters('$connections')['azureloganalyticsdatacollector']['connectionId']"
+                                "name": "@parameters('$connections')['LogAnalyticsConnection']['connectionId']"
                               }
                             },
                             "method": "post",
@@ -220,8 +220,8 @@
               "$connections": {
                 "value": {
                   "azureloganalyticsdatacollector": {
-                    "connectionId": "[parameters('connections_azureloganalyticsdatacollector_externalid')]",
-                    "connectionName": "azureloganalyticsdatacollector",
+                    "connectionId": "[parameters('LogAnalyticsConnection')]",
+                    "connectionName": "LogAnalyticsConnection",
                     "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/azureloganalyticsdatacollector"
                   }
                 }
