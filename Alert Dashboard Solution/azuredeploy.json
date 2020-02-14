@@ -2,209 +2,286 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "LogicAppName": {
-      "defaultValue": "Alert-to-Log",
-      "type": "string"
+    "azureloganalyticsdatacollector_1_Connection_Name": {
+      "type": "string",
+      "defaultValue": "azureloganalyticsdatacollector"
     },
-    "WorkspaceConnectionName": {
-      "defaultValue": "LogAnalyticsConnectionName",
-      "type": "string"
-  }
-  },
-  "variables": {
-    "LogAnalyticsConnectionName": "[parameters('WorkspaceConnectionName')]"
-  },
-  "resources": [
-      {
-          "type": "Microsoft.Logic/workflows",
-          "apiVersion": "2017-07-01",
-          "name": "[parameters('LogicAppName')]",
-          "location": "westeurope",
-          "properties": {
-              "state": "Enabled",
-              "definition": {
-                  "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
-                  "contentVersion": "1.0.0.0",
-                  "parameters": {
-                      "$connections": {
-                          "defaultValue": {},
-                          "type": "Object"
-                      }
-                  },
-                  "triggers": {
-                      "manual": {
-                          "type": "Request",
-                          "kind": "Http",
-                          "inputs": {
-                              "schema": {
-                                  "properties": {
-                                      "data": {
-                                          "properties": {
-                                              "AlertRuleName": {
-                                                  "type": "string"
-                                              },
-                                              "AlertThresholdOperator": {
-                                                  "type": "string"
-                                              },
-                                              "AlertThresholdValue": {
-                                                  "type": "integer"
-                                              },
-                                              "Description": {
-                                                  "type": "string"
-                                              },
-                                              "LinkToSearchResults": {
-                                                  "type": "string"
-                                              },
-                                              "ResultCount": {
-                                                  "type": "integer"
-                                              },
-                                              "SearchIntervalEndtimeUtc": {
-                                                  "type": "string"
-                                              },
-                                              "SearchIntervalInSeconds": {
-                                                  "type": "integer"
-                                              },
-                                              "SearchIntervalStartTimeUtc": {
-                                                  "type": "string"
-                                              },
-                                              "SearchQuery": {
-                                                  "type": "string"
-                                              },
-                                              "SearchResult": {
-                                                  "properties": {
-                                                      "dataSources": {
-                                                          "items": {
-                                                              "properties": {
-                                                                  "resourceId": {
-                                                                      "type": "string"
-                                                                  },
-                                                                  "tables": {
-                                                                      "items": {
-                                                                          "type": "string"
-                                                                      },
-                                                                      "type": "array"
-                                                                  }
-                                                              },
-                                                              "required": [
-                                                                  "resourceId",
-                                                                  "tables"
-                                                              ],
-                                                              "type": "object"
-                                                          },
-                                                          "type": "array"
-                                                      },
-                                                      "tables": {
-                                                          "items": {
-                                                              "properties": {
-                                                                  "columns": {
-                                                                      "items": {
-                                                                          "properties": {
-                                                                              "name": {
-                                                                                  "type": "string"
-                                                                              },
-                                                                              "type": {
-                                                                                  "type": "string"
-                                                                              }
-                                                                          },
-                                                                          "required": [
-                                                                              "name",
-                                                                              "type"
-                                                                          ],
-                                                                          "type": "object"
-                                                                      },
-                                                                      "type": "array"
-                                                                  },
-                                                                  "name": {
-                                                                      "type": "string"
-                                                                  },
-                                                                  "rows": {
-                                                                      "items": {
-                                                                          "type": "array"
-                                                                      },
-                                                                      "type": "array"
-                                                                  }
-                                                              },
-                                                              "required": [
-                                                                  "name",
-                                                                  "columns",
-                                                                  "rows"
-                                                              ],
-                                                              "type": "object"
-                                                          },
-                                                          "type": "array"
-                                                      }
-                                                  },
-                                                  "type": "object"
-                                              },
-                                              "Severity": {
-                                                  "type": "string"
-                                              },
-                                              "SubscriptionId": {
-                                                  "type": "string"
-                                              },
-                                              "WorkspaceId": {
-                                                  "type": "string"
-                                              }
-                                          },
-                                          "type": "object"
-                                      },
-                                      "schemaId": {
-                                          "type": "string"
-                                      }
-                                  },
-                                  "type": "object"
-                              }
-                          }
-                      }
-                  },
-                  "actions": {
-                      "Tables_ForEach": {
-                          "foreach": "@triggerBody()?['data']?['SearchResult']?['tables']",
-                          "actions": {
-                              "Rows_ForEach": {
-                                  "foreach": "@items('Tables_ForEach')?['rows']",
-                                  "actions": {
-                                      "Send_Data": {
-                                          "runAfter": {},
-                                          "type": "ApiConnection",
-                                          "inputs": {
-                                              "body": "{\"AlertRuleName\":\"@{triggerBody()?['data']?['AlertRuleName']}\",\"ComputerName\":\"@{items('Rows_ForEach')[1]}\",\"InstanceName\":\"@{items('Rows_ForEach')[2]}\",\"Value\":\"@{items('Rows_ForEach')[3]}\",\"TimeGenerated\":\"@{items('Rows_ForEach')[0]}\",\"Description\":\"@{triggerBody()?['data']?['Description']}\",\"Severity\":\"@{triggerBody()?['data']?['Severity']}\"}",
-                                              "headers": {
-                                                  "Log-Type": "Alerts_CL",
-                                                  "time-generated-field": "@{utcNow()}"
-                                              },
-                                              "host": {
-                                                  "connection": {
-                                                      "name": "@parameters('$connections')['azureloganalyticsdatacollector']['connectionId']"
-                                                  }
-                                              },
-                                              "method": "post",
-                                              "path": "/api/logs"
-                                          }
-                                      }
-                                  },
-                                  "runAfter": {},
-                                  "type": "Foreach"
-                              }
-                          },
-                          "runAfter": {},
-                          "type": "Foreach"
-                      }
-                  },
-                  "outputs": {}
-              },
-              "parameters": {
-                  "$connections": {
-                      "value": {
-                          "azureloganalyticsdatacollector": {
-                              "connectionId": "[parameters('WorkspaceConnectionName')]",
-                              "connectionName": "azureloganalyticsdatacollector",
-                              "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/azureloganalyticsdatacollector')]"
-                          }
-                      }
-                  }
-              }
-          }
+    "azureloganalyticsdatacollector_1_Connection_DisplayName": {
+      "type": "string",
+      "defaultValue": "NW-LA"
+    },
+    "azureloganalyticsdatacollector_1_username": {
+      "type": "string",
+      "metadata": {
+        "description": "The unique identifier of the Azure Log Analytics workspace."
+      },
+      "defaultValue": "7bfdae32-4c43-4d1c-ab07-39dfa2483051"
+    },
+    "azureloganalyticsdatacollector_1_password": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The primary or secondary key of the Azure Log Analytics workspace."
       }
-  ]
+    },
+    "LogicAppLocation": {
+      "type": "string",
+      "minLength": 1,
+      "allowedValues": [
+        "[resourceGroup().location]",
+        "eastasia",
+        "southeastasia",
+        "centralus",
+        "eastus",
+        "eastus2",
+        "westus",
+        "northcentralus",
+        "southcentralus",
+        "northeurope",
+        "westeurope",
+        "japanwest",
+        "japaneast",
+        "brazilsouth",
+        "australiaeast",
+        "australiasoutheast",
+        "southindia",
+        "centralindia",
+        "westindia",
+        "canadacentral",
+        "canadaeast",
+        "uksouth",
+        "ukwest",
+        "westcentralus",
+        "westus2",
+        "koreacentral",
+        "koreasouth",
+        "francecentral",
+        "francesouth",
+        "southafricanorth",
+        "southafricawest"
+      ],
+      "defaultValue": "westeurope"
+    },
+    "LogicAppName": {
+      "type": "string",
+      "minLength": 1,
+      "defaultValue": "NW-LA-Email-LogAlert"
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "properties": {
+        "state": "Enabled",
+        "definition": {
+          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+          "actions": {
+            "Tables_ForEach": {
+              "type": "Foreach",
+              "foreach": "@triggerBody()?['data']?['SearchResult']?['tables']",
+              "actions": {
+                "Rows_ForEach": {
+                  "type": "Foreach",
+                  "foreach": "@items('Tables_ForEach')?['rows']",
+                  "actions": {
+                    "Send_Data": {
+                      "type": "ApiConnection",
+                      "inputs": {
+                        "host": {
+                          "connection": {
+                            "name": "@parameters('$connections')['azureloganalyticsdatacollector']['connectionId']"
+                          }
+                        },
+                        "method": "post",
+                        "body": "{\"AlertRuleName\":\"@{triggerBody()?['data']?['AlertRuleName']}\",\"ComputerName\":\"@{items('Rows_ForEach')[1]}\",\"InstanceName\":\"@{items('Rows_ForEach')[2]}\",\"Value\":\"@{items('Rows_ForEach')[3]}\",\"TimeGenerated\":\"@{items('Rows_ForEach')[0]}\",\"Description\":\"@{triggerBody()?['data']?['Description']}\",\"Severity\":\"@{triggerBody()?['data']?['Severity']}\"}",
+                        "headers": {
+                          "Log-Type": "Alerts_CL",
+                          "time-generated-field": "@{utcNow()}"
+                        },
+                        "path": "/api/logs"
+                      },
+                      "runAfter": {}
+                    }
+                  },
+                  "runAfter": {}
+                }
+              },
+              "runAfter": {}
+            }
+          },
+          "parameters": {
+            "$connections": {
+              "defaultValue": {},
+              "type": "Object"
+            }
+          },
+          "triggers": {
+            "manual": {
+              "type": "Request",
+              "kind": "Http",
+              "inputs": {
+                "schema": {
+                  "properties": {
+                    "data": {
+                      "properties": {
+                        "AlertRuleName": {
+                          "type": "string"
+                        },
+                        "AlertThresholdOperator": {
+                          "type": "string"
+                        },
+                        "AlertThresholdValue": {
+                          "type": "integer"
+                        },
+                        "Description": {
+                          "type": "string"
+                        },
+                        "LinkToSearchResults": {
+                          "type": "string"
+                        },
+                        "ResultCount": {
+                          "type": "integer"
+                        },
+                        "SearchIntervalEndtimeUtc": {
+                          "type": "string"
+                        },
+                        "SearchIntervalInSeconds": {
+                          "type": "integer"
+                        },
+                        "SearchIntervalStartTimeUtc": {
+                          "type": "string"
+                        },
+                        "SearchQuery": {
+                          "type": "string"
+                        },
+                        "SearchResult": {
+                          "properties": {
+                            "dataSources": {
+                              "items": {
+                                "properties": {
+                                  "resourceId": {
+                                    "type": "string"
+                                  },
+                                  "tables": {
+                                    "items": {
+                                      "type": "string"
+                                    },
+                                    "type": "array"
+                                  }
+                                },
+                                "required": [
+                                  "resourceId",
+                                  "tables"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            },
+                            "tables": {
+                              "items": {
+                                "properties": {
+                                  "columns": {
+                                    "items": {
+                                      "properties": {
+                                        "name": {
+                                          "type": "string"
+                                        },
+                                        "type": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "required": [
+                                        "name",
+                                        "type"
+                                      ],
+                                      "type": "object"
+                                    },
+                                    "type": "array"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "rows": {
+                                    "items": {
+                                      "type": "array"
+                                    },
+                                    "type": "array"
+                                  }
+                                },
+                                "required": [
+                                  "name",
+                                  "columns",
+                                  "rows"
+                                ],
+                                "type": "object"
+                              },
+                              "type": "array"
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "Severity": {
+                          "type": "string"
+                        },
+                        "SubscriptionId": {
+                          "type": "string"
+                        },
+                        "WorkspaceId": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "schemaId": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "contentVersion": "1.0.0.0",
+          "outputs": {}
+        },
+        "parameters": {
+          "$connections": {
+            "value": {
+              "azureloganalyticsdatacollector": {
+                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', 'westeurope', '/managedApis/', 'azureloganalyticsdatacollector')]",
+                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('azureloganalyticsdatacollector_1_Connection_Name'))]",
+                "connectionName": "[parameters('azureloganalyticsdatacollector_1_Connection_Name')]"
+              }
+            }
+          }
+        }
+      },
+      "name": "[parameters('LogicAppName')]",
+      "type": "Microsoft.Logic/workflows",
+      "location": "[parameters('LogicAppLocation')]",
+      "tags": {
+        "displayName": "LogicApp"
+      },
+      "apiVersion": "2016-06-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/connections', parameters('azureloganalyticsdatacollector_1_Connection_Name'))]"
+      ]
+    },
+    {
+      "type": "MICROSOFT.WEB/CONNECTIONS",
+      "apiVersion": "2018-07-01-preview",
+      "name": "[parameters('azureloganalyticsdatacollector_1_Connection_Name')]",
+      "location": "westeurope",
+      "properties": {
+        "api": {
+          "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', 'westeurope', '/managedApis/', 'azureloganalyticsdatacollector')]"
+        },
+        "displayName": "[parameters('azureloganalyticsdatacollector_1_Connection_DisplayName')]",
+        "parameterValues": {
+          "username": "[parameters('azureloganalyticsdatacollector_1_username')]",
+          "password": "[parameters('azureloganalyticsdatacollector_1_password')]"
+        }
+      }
+    }
+  ],
+  "outputs": {}
 }
