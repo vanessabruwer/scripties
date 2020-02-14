@@ -7,7 +7,7 @@
       "type": "string"
     },
       "connections_azureloganalyticsdatacollector_externalid": {
-          "defaultValue": "[concat(/subscriptions/', subscription().subscriptionid, '/resourceGroups/', resourceGroup().name '/providers/Microsoft.Web/connections/azureloganalyticsdatacollector)]",
+          "defaultValue": "[concat(/subscriptions/', subscription().subscriptionid, '/resourceGroups/', resourceGroup().name '/providers/Microsoft.Web/connections/azureloganalyticsdatacollector')]",
           "type": "String"
       }
   },
