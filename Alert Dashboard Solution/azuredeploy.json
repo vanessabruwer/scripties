@@ -12,7 +12,7 @@
   }
   },
   "variables": {
-    "connections_azureloganalyticsdatacollector_externalid": "[parameters('WorkspaceConnectionName')]"
+    "LogAnalyticsConnectionName": "[parameters('WorkspaceConnectionName')]"
   },
   "resources": [
       {
