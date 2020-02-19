@@ -59,7 +59,7 @@
     "LogicAppName": {
       "type": "string",
       "minLength": 1,
-      "defaultValue": "Sentinel Alert with Account Information"
+      "defaultValue": "Sentinel-Alert-AccountInfo"
     }
   },
   "variables": {},
