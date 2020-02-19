@@ -1,0 +1,214 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "azuresentinel_1_Connection_Name": {
+      "type": "string",
+      "defaultValue": "azuresentinel"
+    },
+    "azuresentinel_1_Connection_DisplayName": {
+      "type": "string",
+      "defaultValue": "yourname@domain.com"
+    },
+    "office365_1_Connection_Name": {
+      "type": "string",
+      "defaultValue": "office365"
+    },
+    "office365_1_Connection_DisplayName": {
+      "type": "string",
+      "defaultValue": "yourname@domain.com"
+    },
+    "LogicAppLocation": {
+      "type": "string",
+      "minLength": 1,
+      "allowedValues": [
+        "[resourceGroup().location]",
+        "eastasia",
+        "southeastasia",
+        "centralus",
+        "eastus",
+        "eastus2",
+        "westus",
+        "northcentralus",
+        "southcentralus",
+        "northeurope",
+        "westeurope",
+        "japanwest",
+        "japaneast",
+        "brazilsouth",
+        "australiaeast",
+        "australiasoutheast",
+        "southindia",
+        "centralindia",
+        "westindia",
+        "canadacentral",
+        "canadaeast",
+        "uksouth",
+        "ukwest",
+        "westcentralus",
+        "westus2",
+        "koreacentral",
+        "koreasouth",
+        "francecentral",
+        "francesouth",
+        "southafricanorth",
+        "southafricawest"
+      ],
+      "defaultValue": "westeurope"
+    },
+    "LogicAppName": {
+      "type": "string",
+      "minLength": 1,
+      "defaultValue": "Test333"
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "properties": {
+        "state": "Enabled",
+        "definition": {
+          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+          "actions": {
+            "Alert_-_Get_accounts": {
+              "type": "ApiConnection",
+              "inputs": {
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                  }
+                },
+                "method": "post",
+                "body": "@triggerBody()?['Entities']",
+                "path": "/entities/account"
+              },
+              "runAfter": {}
+            },
+            "For_each": {
+              "type": "Foreach",
+              "foreach": "@body('Alert_-_Get_accounts')?['Accounts']",
+              "actions": {
+                "Send_an_email_(V2)": {
+                  "type": "ApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connection": {
+                        "name": "@parameters('$connections')['office365']['connectionId']"
+                      }
+                    },
+                    "method": "post",
+                    "body": {
+                      "To": "vabruwer@microsoft.com",
+                      "Subject": "Sentinel Alert: @{triggerBody()?['AlertDisplayName']}",
+                      "Body": "<p>Hi<br>\n<br>\nHere is an alert from sentinel with some more context:<br>\n<br>\nSeverity: @{triggerBody()?['Severity']}<br>\n<br>\nDescription: @{triggerBody()?['Description']}<br>\n<br>\n<br>\nAffected Account:<br>\n@{items('For_each')?['Name']}<br>\n<br>\nUPN:<br>\n@{items('For_each')?['UPNSuffix']}</p>"
+                    },
+                    "path": "/v2/Mail"
+                  },
+                  "runAfter": {}
+                },
+                "Update_user": {
+                  "type": "ApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connection": {
+                        "name": "@parameters('$connections')['undefined']['connectionId']"
+                      }
+                    },
+                    "method": "patch",
+                    "path": "/v1.0/users/"
+                  },
+                  "runAfter": {
+                    "Send_an_email_(V2)": [
+                      "Succeeded"
+                    ]
+                  }
+                }
+              },
+              "runAfter": {
+                "Alert_-_Get_accounts": [
+                  "Succeeded"
+                ]
+              }
+            }
+          },
+          "parameters": {
+            "$connections": {
+              "defaultValue": {},
+              "type": "Object"
+            }
+          },
+          "triggers": {
+            "When_a_response_to_an_Azure_Sentinel_alert_is_triggered": {
+              "type": "ApiConnectionWebhook",
+              "inputs": {
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                  }
+                },
+                "body": {
+                  "callback_url": "@{listCallbackUrl()}"
+                },
+                "path": "/subscribe"
+              }
+            }
+          },
+          "contentVersion": "1.0.0.0",
+          "outputs": {}
+        },
+        "parameters": {
+          "$connections": {
+            "value": {
+              "azuresentinel": {
+                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', 'westeurope', '/managedApis/', 'azuresentinel')]",
+                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('azuresentinel_1_Connection_Name'))]",
+                "connectionName": "[parameters('azuresentinel_1_Connection_Name')]"
+              },
+              "office365": {
+                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', 'westeurope', '/managedApis/', 'office365')]",
+                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('office365_1_Connection_Name'))]",
+                "connectionName": "[parameters('office365_1_Connection_Name')]"
+              }
+            }
+          }
+        }
+      },
+      "name": "[parameters('LogicAppName')]",
+      "type": "Microsoft.Logic/workflows",
+      "location": "[parameters('LogicAppLocation')]",
+      "tags": {
+        "displayName": "LogicApp"
+      },
+      "apiVersion": "2016-06-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/connections', parameters('azuresentinel_1_Connection_Name'))]",
+        "[resourceId('Microsoft.Web/connections', parameters('office365_1_Connection_Name'))]"
+      ]
+    },
+    {
+      "type": "MICROSOFT.WEB/CONNECTIONS",
+      "apiVersion": "2018-07-01-preview",
+      "name": "[parameters('azuresentinel_1_Connection_Name')]",
+      "location": "westeurope",
+      "properties": {
+        "api": {
+          "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', 'westeurope', '/managedApis/', 'azuresentinel')]"
+        },
+        "displayName": "[parameters('azuresentinel_1_Connection_DisplayName')]"
+      }
+    },
+    {
+      "type": "MICROSOFT.WEB/CONNECTIONS",
+      "apiVersion": "2018-07-01-preview",
+      "name": "[parameters('office365_1_Connection_Name')]",
+      "location": "westeurope",
+      "properties": {
+        "api": {
+          "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', 'westeurope', '/managedApis/', 'office365')]"
+        },
+        "displayName": "[parameters('office365_1_Connection_DisplayName')]"
+      }
+    }
+  ],
+  "outputs": {}
+}
