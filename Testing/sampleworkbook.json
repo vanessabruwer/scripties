@@ -177,6 +177,298 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
+        "query": "SecurityAlert\r\n| summarize Count = count() by AlertSeverity, ProductName\r\n| join kind = inner (SecurityAlert\r\n | make-series Trend = count() default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by AlertSeverity)\r\n on AlertSeverity\r\n | project-away TimeGenerated\r\n| extend AlertSeveritys = AlertSeverity\r\n| union (\r\n SecurityAlert \r\n | summarize Count = count() \r\n | extend jkey = 1\r\n | join kind=inner (SecurityAlert\r\n | make-series Trend = count() default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain}\r\n | extend jkey = 1) on jkey\r\n | extend AlertSeverity = 'All', AlertSeveritys = '*' \r\n)\r\n| extend Severity = iif(AlertSeverity == \"All\", 0,iif(AlertSeverity == \"High\", 1, iif(AlertSeverity == \"Medium\", 2, iif(AlertSeverity == \"Low\", 3, 4))))\r\n| order by ProductName asc, Severity asc\r\n",
+        "size": 4,
+        "title": "Security Alerts by Severity",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{LogsWorkspaces}"
+        ],
+        "visualization": "tiles",
+        "tileSettings": {
+          "titleContent": {
+            "columnMatch": "AlertSeverity",
+            "formatter": 1,
+            "formatOptions": {
+              "showIcon": true
+            }
+          },
+          "subtitleContent": {
+            "columnMatch": "ProductName",
+            "formatter": 1,
+            "formatOptions": {
+              "showIcon": true
+            }
+          },
+          "leftContent": {
+            "columnMatch": "Count",
+            "formatter": 12,
+            "formatOptions": {
+              "showIcon": true
+            },
+            "numberFormat": {
+              "unit": 17,
+              "options": {
+                "style": "decimal",
+                "useGrouping": false,
+                "maximumFractionDigits": 2,
+                "maximumSignificantDigits": 3
+              }
+            }
+          },
+          "secondaryContent": {
+            "columnMatch": "Trend",
+            "formatter": 9,
+            "formatOptions": {
+              "palette": "gray",
+              "showIcon": true
+            }
+          },
+          "showBorder": false
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "SecurityOverview"
+      },
+      "name": "securityeventsbysev"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "SecurityAlert \r\n| summarize count() by bin(TimeGenerated, 1h), AlertSeverity, ProductName\r\n| order by TimeGenerated asc",
+        "size": 0,
+        "aggregation": 3,
+        "title": "Security Alerts Trend",
+        "noDataMessage": "No Security Alerts in Sentinel in this time range",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{LogsWorkspaces}"
+        ],
+        "visualization": "linechart",
+        "chartSettings": {
+          "seriesLabelSettings": [
+            {
+              "seriesName": "Medium",
+              "color": "orange"
+            },
+            {
+              "seriesName": "Low",
+              "color": "yellow"
+            },
+            {
+              "seriesName": "High",
+              "color": "redBright"
+            },
+            {
+              "seriesName": "Informational",
+              "color": "gray"
+            }
+          ]
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "SecurityOverview"
+      },
+      "name": "SecurityAlertTrend"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "SecurityAlert \r\n| summarize count() by AlertName, AlertSeverity, ProductName",
+        "size": 0,
+        "title": "Security Alerts",
+        "noDataMessage": "No Active Incidents in Sentinel",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "showExportToExcel": true,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{LogsWorkspaces}"
+        ],
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "$gen_group",
+              "formatter": 1,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "AlertName",
+              "formatter": 0,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "AlertSeverity",
+              "formatter": 0,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "ProductName",
+              "formatter": 0,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "count_",
+              "formatter": 4,
+              "formatOptions": {
+                "palette": "coldHot",
+                "showIcon": true
+              }
+            }
+          ],
+          "hierarchySettings": {
+            "treeType": 1,
+            "groupBy": [
+              "ProductName"
+            ],
+            "expandTopLevel": true
+          },
+          "labelSettings": [
+            {
+              "columnId": "AlertName",
+              "label": "Alert Name"
+            },
+            {
+              "columnId": "AlertSeverity",
+              "label": "Severity"
+            },
+            {
+              "columnId": "count_",
+              "label": "Number of Alerts"
+            }
+          ]
+        },
+        "sortBy": []
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "SecurityOverview"
+      },
+      "name": "SecurityAlert"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "SecurityRecommendation\r\n| where RecommendationState == \"Unhealthy\"\r\n| summarize count() by RecommendationSeverity, RecommendationState\r\n| extend SortOrder = iff(RecommendationSeverity==\"High\", 3, iff(RecommendationSeverity==\"Medium\", 2, iif(RecommendationSeverity==\"Low\", 1, 0)))\r\n| order by SortOrder desc ",
+        "size": 4,
+        "title": "Security Recommendation Summary",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{LogsWorkspaces}"
+        ],
+        "visualization": "tiles",
+        "tileSettings": {
+          "titleContent": {
+            "formatter": 1,
+            "formatOptions": {
+              "showIcon": true
+            }
+          },
+          "leftContent": {
+            "columnMatch": "count_",
+            "formatter": 12,
+            "formatOptions": {
+              "showIcon": true
+            }
+          },
+          "secondaryContent": {
+            "columnMatch": "SortOrder",
+            "formatter": 11,
+            "formatOptions": {
+              "showIcon": true
+            }
+          },
+          "showBorder": false
+        },
+        "graphSettings": {
+          "type": 0,
+          "topContent": {
+            "columnMatch": "RecommendationSeverity",
+            "formatter": 1,
+            "formatOptions": {
+              "showIcon": true
+            }
+          },
+          "centerContent": {
+            "columnMatch": "count_",
+            "formatter": 1,
+            "formatOptions": {
+              "showIcon": true
+            },
+            "numberFormat": {
+              "unit": 17,
+              "options": {
+                "maximumSignificantDigits": 3,
+                "maximumFractionDigits": 2
+              }
+            }
+          },
+          "bottomContent": {
+            "columnMatch": "RecommendationState",
+            "formatOptions": {
+              "showIcon": true
+            }
+          },
+          "nodeIdField": "RecommendationState",
+          "edgeLabel": "RecommendationState",
+          "nodeSize": null,
+          "staticNodeSize": 100,
+          "colorSettings": {
+            "nodeColorField": "SortOrder",
+            "type": 4,
+            "heatmapPalette": "hotCold",
+            "heatmapMin": null,
+            "heatmapMax": null
+          },
+          "groupByField": "RecommendationState",
+          "hivesMargin": 5
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "SecurityOverview"
+      },
+      "name": "securityrecommendationcount"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
         "query": "SecurityRecommendation \r\n| where RecommendationDisplayName != \"\"\r\n| summarize count() by RecommendationDisplayName, RecommendationState \r\n| order by RecommendationState desc, count_ desc",
         "size": 0,
         "title": "Security Recommendation Result",
@@ -245,131 +537,6 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "SecurityAlert \r\n| summarize count() by bin(TimeGenerated, 1h), AlertSeverity  \r\n| order by TimeGenerated asc",
-        "size": 0,
-        "aggregation": 3,
-        "title": "Security Alerts Trend",
-        "noDataMessage": "No Security Alerts in Sentinel in this time range",
-        "timeContext": {
-          "durationMs": 0
-        },
-        "timeContextFromParameter": "TimeRange",
-        "queryType": 0,
-        "resourceType": "microsoft.operationalinsights/workspaces",
-        "crossComponentResources": [
-          "{LogsWorkspaces}"
-        ],
-        "visualization": "linechart",
-        "chartSettings": {
-          "seriesLabelSettings": [
-            {
-              "seriesName": "Medium",
-              "color": "orange"
-            },
-            {
-              "seriesName": "Low",
-              "color": "yellow"
-            },
-            {
-              "seriesName": "High",
-              "color": "redBright"
-            },
-            {
-              "seriesName": "Informational",
-              "color": "gray"
-            }
-          ]
-        }
-      },
-      "conditionalVisibility": {
-        "parameterName": "selectedTab",
-        "comparison": "isEqualTo",
-        "value": "SecurityOverview"
-      },
-      "name": "SecurityAlertTrend"
-    },
-    {
-      "type": 3,
-      "content": {
-        "version": "KqlItem/1.0",
-        "query": "SecurityAlert \r\n| summarize count() by AlertName, AlertSeverity",
-        "size": 0,
-        "title": "Security Alerts",
-        "noDataMessage": "No Active Incidents in Sentinel",
-        "timeContext": {
-          "durationMs": 0
-        },
-        "timeContextFromParameter": "TimeRange",
-        "showExportToExcel": true,
-        "queryType": 0,
-        "resourceType": "microsoft.operationalinsights/workspaces",
-        "crossComponentResources": [
-          "{LogsWorkspaces}"
-        ],
-        "gridSettings": {
-          "formatters": [
-            {
-              "columnMatch": "AlertName",
-              "formatter": 0,
-              "formatOptions": {
-                "showIcon": true
-              }
-            },
-            {
-              "columnMatch": "AlertSeverity",
-              "formatter": 0,
-              "formatOptions": {
-                "showIcon": true
-              }
-            },
-            {
-              "columnMatch": "count_",
-              "formatter": 4,
-              "formatOptions": {
-                "palette": "coldHot",
-                "showIcon": true
-              }
-            }
-          ],
-          "sortBy": [
-            {
-              "itemKey": "$gen_bar_count__2",
-              "sortOrder": 2
-            }
-          ],
-          "labelSettings": [
-            {
-              "columnId": "AlertName",
-              "label": "Alert Name"
-            },
-            {
-              "columnId": "AlertSeverity",
-              "label": "Severity"
-            },
-            {
-              "columnId": "count_",
-              "label": "Number of Alerts"
-            }
-          ]
-        },
-        "sortBy": [
-          {
-            "itemKey": "$gen_bar_count__2",
-            "sortOrder": 2
-          }
-        ]
-      },
-      "conditionalVisibility": {
-        "parameterName": "selectedTab",
-        "comparison": "isEqualTo",
-        "value": "SecurityOverview"
-      },
-      "name": "SecurityAlert"
-    },
-    {
-      "type": 3,
-      "content": {
-        "version": "KqlItem/1.0",
         "query": "SecurityEvent\r\n| summarize Count=count() by Type, bin(TimeGenerated, 6h)\r\n| order by TimeGenerated asc",
         "size": 0,
         "title": "Security Event Anomalies",
@@ -391,64 +558,6 @@
         "value": "SecurityOverview"
       },
       "name": "SecurityEventTrend"
-    },
-    {
-      "type": 3,
-      "content": {
-        "version": "KqlItem/1.0",
-        "query": "SecurityEvent\r\n| summarize count() by Type, Channel, AccountType ",
-        "size": 0,
-        "title": "Security Events Summary",
-        "noDataMessage": "No Security Events collected in Azure Sentinel",
-        "timeContext": {
-          "durationMs": 0
-        },
-        "timeContextFromParameter": "TimeRange",
-        "queryType": 0,
-        "resourceType": "microsoft.operationalinsights/workspaces",
-        "crossComponentResources": [
-          "{LogsWorkspaces}"
-        ],
-        "gridSettings": {
-          "formatters": [
-            {
-              "columnMatch": "Type",
-              "formatter": 0,
-              "formatOptions": {
-                "showIcon": true
-              }
-            },
-            {
-              "columnMatch": "Channel",
-              "formatter": 0,
-              "formatOptions": {
-                "showIcon": true
-              }
-            },
-            {
-              "columnMatch": "AccountType",
-              "formatter": 0,
-              "formatOptions": {
-                "showIcon": true
-              }
-            },
-            {
-              "columnMatch": "count_",
-              "formatter": 4,
-              "formatOptions": {
-                "palette": "coldHot",
-                "showIcon": true
-              }
-            }
-          ]
-        }
-      },
-      "conditionalVisibility": {
-        "parameterName": "selectedTabs",
-        "comparison": "isEqualTo",
-        "value": "SecurityOverview"
-      },
-      "name": "SecurityEventsSummary"
     },
     {
       "type": 3,
@@ -737,198 +846,10 @@
       "name": "ActivityLogSummary"
     },
     {
-      "type": 9,
-      "content": {
-        "version": "KqlParameterItem/1.0",
-        "crossComponentResources": [
-          "{LogsWorkspaces}"
-        ],
-        "parameters": [
-          {
-            "id": "c3435dbe-b5cb-4df5-bb53-9cfadba2389f",
-            "version": "KqlParameterItem/1.0",
-            "name": "Category",
-            "type": 2,
-            "multiSelect": true,
-            "quote": "'",
-            "delimiter": ",",
-            "query": "AzureActivity\r\n| distinct Category",
-            "crossComponentResources": [
-              "{LogsWorkspaces}"
-            ],
-            "value": [
-              "value::all"
-            ],
-            "typeSettings": {
-              "additionalResourceOptions": [
-                "value::all"
-              ]
-            },
-            "timeContext": {
-              "durationMs": 0
-            },
-            "timeContextFromParameter": "TimeRange",
-            "queryType": 0,
-            "resourceType": "microsoft.operationalinsights/workspaces"
-          },
-          {
-            "id": "202fdf39-8b24-4db4-a659-34bc01fd6be3",
-            "version": "KqlParameterItem/1.0",
-            "name": "Level",
-            "type": 2,
-            "multiSelect": true,
-            "quote": "'",
-            "delimiter": ",",
-            "query": "AzureActivity\r\n| distinct Level\r\n| order by Level",
-            "crossComponentResources": [
-              "{LogsWorkspaces}"
-            ],
-            "value": [
-              "value::all"
-            ],
-            "typeSettings": {
-              "additionalResourceOptions": [
-                "value::all"
-              ]
-            },
-            "timeContext": {
-              "durationMs": 0
-            },
-            "timeContextFromParameter": "TimeRange",
-            "queryType": 0,
-            "resourceType": "microsoft.operationalinsights/workspaces"
-          },
-          {
-            "id": "33c54c56-4d49-4d71-a33f-eecabf3355e9",
-            "version": "KqlParameterItem/1.0",
-            "name": "ActivityStatus",
-            "type": 2,
-            "multiSelect": true,
-            "quote": "'",
-            "delimiter": ",",
-            "query": "AzureActivity\r\n| distinct ActivityStatus\r\n| order by ActivityStatus",
-            "crossComponentResources": [
-              "{LogsWorkspaces}"
-            ],
-            "value": [
-              "Succeeded",
-              "Started",
-              "Failed",
-              "Accepted",
-              ""
-            ],
-            "typeSettings": {
-              "additionalResourceOptions": []
-            },
-            "timeContext": {
-              "durationMs": 0
-            },
-            "timeContextFromParameter": "TimeRange",
-            "queryType": 0,
-            "resourceType": "microsoft.operationalinsights/workspaces",
-            "label": "Activity Status"
-          },
-          {
-            "id": "6c516107-0e8f-49a0-b899-4d4664f70082",
-            "version": "KqlParameterItem/1.0",
-            "name": "ResourceProvider",
-            "type": 2,
-            "multiSelect": true,
-            "quote": "'",
-            "delimiter": ",",
-            "query": "AzureActivity\r\n| distinct ResourceProvider\r\n| order by ResourceProvider",
-            "crossComponentResources": [
-              "{LogsWorkspaces}"
-            ],
-            "value": [
-              "value::all"
-            ],
-            "typeSettings": {
-              "additionalResourceOptions": [
-                "value::all"
-              ]
-            },
-            "timeContext": {
-              "durationMs": 0
-            },
-            "timeContextFromParameter": "TimeRange",
-            "queryType": 0,
-            "resourceType": "microsoft.operationalinsights/workspaces",
-            "label": "Resource Provider"
-          },
-          {
-            "id": "c622e957-1bfb-4f54-b134-ca56e6ef1760",
-            "version": "KqlParameterItem/1.0",
-            "name": "ResourceGroup",
-            "type": 2,
-            "multiSelect": true,
-            "quote": "'",
-            "delimiter": ",",
-            "query": "AzureActivity\r\n| distinct ResourceGroup",
-            "crossComponentResources": [
-              "{LogsWorkspaces}"
-            ],
-            "value": [
-              "value::all"
-            ],
-            "typeSettings": {
-              "additionalResourceOptions": [
-                "value::all"
-              ]
-            },
-            "timeContext": {
-              "durationMs": 0
-            },
-            "timeContextFromParameter": "TimeRange",
-            "queryType": 0,
-            "resourceType": "microsoft.operationalinsights/workspaces",
-            "label": "Resource Group"
-          },
-          {
-            "id": "87711abf-dfff-4f17-b6b0-a8bfbbafa08e",
-            "version": "KqlParameterItem/1.0",
-            "name": "Resource",
-            "type": 5,
-            "isRequired": true,
-            "multiSelect": true,
-            "quote": "'",
-            "delimiter": ",",
-            "query": "AzureActivity\r\n| distinct ResourceId",
-            "crossComponentResources": [
-              "{LogsWorkspaces}"
-            ],
-            "value": [
-              "value::all"
-            ],
-            "typeSettings": {
-              "additionalResourceOptions": [
-                "value::all"
-              ]
-            },
-            "timeContext": {
-              "durationMs": 0
-            },
-            "timeContextFromParameter": "TimeRange",
-            "queryType": 0,
-            "resourceType": "microsoft.operationalinsights/workspaces"
-          }
-        ],
-        "style": "pills",
-        "queryType": 0,
-        "resourceType": "microsoft.operationalinsights/workspaces"
-      },
-      "conditionalVisibility": {
-        "parameterName": "selectedTab",
-        "comparison": "isEqualTo",
-        "value": "ActivityLog"
-      },
-      "name": "parameters - 18"
-    },
-    {
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "AzureActivity\r\n| where Category in ({Category}) or '*' in ({Category})\r\n| where Level in ({Level}) or '*' in ({Level})\r\n| where ActivityStatus in ({ActivityStatus}) or '*' in ({ActivityStatus})\r\n| where SubscriptionId in ({Subscriptions:value}) or '*' in ({Subscriptions:value})\r\n| where ResourceProvider in ({ResourceProvider}) or '*' in ({ResourceProvider})\r\n| where ResourceGroup in ({ResourceGroup}) or '*' in ({ResourceGroup})\r\n| where ResourceId in ({Resource:value}) or '*' in ({Resource:value})\r\n| make-series Count = count() default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain}",
+        "query": "AzureActivity\r\n| make-series Count = count() default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain}",
         "size": 1,
         "timeContext": {
           "durationMs": 0
@@ -947,6 +868,165 @@
         "value": "ActivityLog"
       },
       "name": "query - 17"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureActivity\r\n| summarize deletions = countif(OperationName contains \"Delete\"), creations = countif(OperationName contains \"Create\"), updates = countif(OperationName contains \"Update\"), Activities = count(OperationName) by bin_at(TimeGenerated, 1h, now())",
+        "size": 0,
+        "title": "Activities over Time",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{LogsWorkspaces}"
+        ],
+        "visualization": "linechart",
+        "chartSettings": {
+          "seriesLabelSettings": [
+            {
+              "seriesName": "deletions",
+              "label": "Deletions",
+              "color": "redBright"
+            },
+            {
+              "seriesName": "creations",
+              "label": "Creations",
+              "color": "turquoise"
+            },
+            {
+              "seriesName": "updates",
+              "label": "Updates",
+              "color": "orange"
+            },
+            {
+              "seriesName": "Activities",
+              "label": "Activities",
+              "color": "purple"
+            }
+          ]
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "ActivityLog"
+      },
+      "name": "activitylogovertime"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureActivity\r\n| summarize dcount(ResourceProvider)",
+        "size": 1,
+        "title": "Resource providers producing activity logs",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{LogsWorkspaces}"
+        ],
+        "visualization": "graph",
+        "tileSettings": {
+          "titleContent": {
+            "formatOptions": {
+              "showIcon": true
+            }
+          },
+          "leftContent": {
+            "columnMatch": "dcount_ResourceProvider",
+            "formatter": 12,
+            "formatOptions": {
+              "showIcon": true
+            }
+          },
+          "showBorder": false
+        },
+        "graphSettings": {
+          "type": 2,
+          "topContent": {
+            "formatOptions": {
+              "showIcon": true
+            }
+          },
+          "centerContent": {
+            "columnMatch": "dcount_ResourceProvider",
+            "formatter": 12,
+            "formatOptions": {
+              "showIcon": true
+            }
+          },
+          "nodeIdField": "dcount_ResourceProvider",
+          "nodeSize": null,
+          "staticNodeSize": 100,
+          "colorSettings": {
+            "nodeColorField": "dcount_ResourceProvider",
+            "type": 4,
+            "heatmapPalette": "coldHot",
+            "heatmapMin": null,
+            "heatmapMax": null
+          },
+          "hivesMargin": 5
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "ActivityLog"
+      },
+      "customWidth": "30",
+      "name": "query - 20"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureActivity\r\n| summarize AggregatedValue = count() by ResourceProvider\r\n| order by AggregatedValue desc nulls last \r\n| take 10",
+        "size": 0,
+        "title": "Top 10 Resource Providers",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{LogsWorkspaces}"
+        ],
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "ResourceProvider",
+              "formatter": 0,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "AggregatedValue",
+              "formatter": 4,
+              "formatOptions": {
+                "showIcon": true
+              }
+            }
+          ]
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "ActivityLog"
+      },
+      "customWidth": "60",
+      "name": "query - 21"
     }
   ],
   "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
