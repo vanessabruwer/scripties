@@ -109,7 +109,8 @@
                 }
               ]
             },
-            "label": "Time Range"
+            "label": "Time Range",
+            "resourceType": "microsoft.insights/components"
           }
         ],
         "style": "pills",
@@ -155,6 +156,13 @@
             "linkTarget": "parameter",
             "linkLabel": "Azure Activity Log",
             "subTarget": "ActivityLog",
+            "style": "link"
+          },
+          {
+            "cellValue": "selectedTab",
+            "linkTarget": "parameter",
+            "linkLabel": "Key Vault",
+            "subTarget": "KeyVault",
             "style": "link"
           }
         ]
@@ -996,6 +1004,8 @@
           "durationMs": 0
         },
         "timeContextFromParameter": "TimeRange",
+        "showExportToExcel": true,
+        "exportToExcelOptions": "all",
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
         "crossComponentResources": [
@@ -1027,6 +1037,118 @@
       },
       "customWidth": "60",
       "name": "query - 21"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureActivity  \r\n| where ActivityStatus == \"Failed\"\r\n| extend action_ = tostring(parse_json(Authorization).action) \r\n| extend code_ = tostring(parse_json(tostring(parse_json(tostring(parse_json(Properties).statusMessage)).error)).code) \r\n| extend message_ = tostring(parse_json(tostring(parse_json(tostring(parse_json(Properties).statusMessage)).error)).message) \r\n| project TimeGenerated, CallerIpAddress, CategoryValue, action_, code_, message_, OperationNameValue, ResourceProviderValue, ActivitySubstatus ",
+        "size": 0,
+        "title": "Failures in Activity Log",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "showExportToExcel": true,
+        "exportToExcelOptions": "all",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{LogsWorkspaces}"
+        ],
+        "gridSettings": {
+          "filter": true
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "ActivityLog"
+      },
+      "name": "query - 24"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureDiagnostics\r\n| where ResourceProvider ==\"MICROSOFT.KEYVAULT\" \r\n| summarize count() by bin(TimeGenerated, 1h), OperationName // Aggregate by hour\r\n| render timechart",
+        "size": 0,
+        "title": "Keyvault Activity over time",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{LogsWorkspaces}"
+        ],
+        "chartSettings": {
+          "seriesLabelSettings": [
+            {
+              "seriesName": "VaultGet",
+              "label": "Vault Activities"
+            }
+          ]
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "KeyVault"
+      },
+      "name": "query - 22"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureDiagnostics\r\n| where ResourceProvider ==\"MICROSOFT.KEYVAULT\"\r\n| summarize count() by CallerIPAddress\r\n| order by count_ desc",
+        "size": 0,
+        "title": "Calls to Keyvault",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{LogsWorkspaces}"
+        ],
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "CallerIPAddress",
+              "formatter": 0,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "count_",
+              "formatter": 4,
+              "formatOptions": {
+                "showIcon": true
+              }
+            }
+          ],
+          "labelSettings": [
+            {
+              "columnId": "CallerIPAddress"
+            },
+            {
+              "columnId": "count_",
+              "label": "Calls"
+            }
+          ]
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "KeyVault"
+      },
+      "name": "query - 23"
     }
   ],
   "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
