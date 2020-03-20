@@ -1,0 +1,420 @@
+{
+    "version": "Notebook/1.0",
+    "items": [
+      {
+        "type": 1,
+        "content": {
+          "json": "# Azure Storage Account report"
+        },
+        "name": "text - 2"
+      },
+      {
+        "type": 9,
+        "content": {
+          "version": "KqlParameterItem/1.0",
+          "parameters": [
+            {
+              "id": "4eecd769-91de-4e87-8dd0-0b35d83f8a7d",
+              "version": "KqlParameterItem/1.0",
+              "name": "Subscription",
+              "type": 6,
+              "isRequired": true,
+              "multiSelect": true,
+              "quote": "'",
+              "delimiter": ",",
+              "query": "summarize by subscriptionId\r\n| project value = strcat('/subscriptions/', subscriptionId), label = subscriptionId",
+              "crossComponentResources": [
+                "value::selected"
+              ],
+              "value": [],
+              "typeSettings": {
+                "additionalResourceOptions": []
+              },
+              "queryType": 1,
+              "resourceType": "microsoft.resourcegraph/resources"
+            },
+            {
+              "id": "7a48d4a3-73b6-4392-9309-08c408adfcaa",
+              "version": "KqlParameterItem/1.0",
+              "name": "Workspaces",
+              "type": 5,
+              "isRequired": true,
+              "multiSelect": true,
+              "quote": "'",
+              "delimiter": ",",
+              "query": "where type =~ 'microsoft.operationalinsights/workspaces'\r\n| summarize by id, name\r\n| project id",
+              "crossComponentResources": [
+                "{Subscription}"
+              ],
+              "value": [],
+              "typeSettings": {
+                "additionalResourceOptions": []
+              },
+              "queryType": 1,
+              "resourceType": "microsoft.resourcegraph/resources"
+            },
+            {
+              "id": "22917f4e-5d30-4761-ac21-481f7b41aa75",
+              "version": "KqlParameterItem/1.0",
+              "name": "TimeRange",
+              "type": 4,
+              "isRequired": true,
+              "value": {
+                "durationMs": 43200000
+              },
+              "typeSettings": {
+                "selectableValues": [
+                  {
+                    "durationMs": 14400000
+                  },
+                  {
+                    "durationMs": 43200000
+                  },
+                  {
+                    "durationMs": 86400000
+                  },
+                  {
+                    "durationMs": 172800000
+                  },
+                  {
+                    "durationMs": 604800000
+                  },
+                  {
+                    "durationMs": 1209600000
+                  },
+                  {
+                    "durationMs": 2592000000
+                  }
+                ],
+                "allowCustom": true
+              },
+              "resourceType": "microsoft.insights/components"
+            }
+          ],
+          "style": "pills",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces"
+        },
+        "name": "parameters - 1"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "This workbook relies on the data collected into the AzureStorage custom table in Log Analytics, populated by the script found <a href=\"https://github.com/vanessabruwer/scripties/blob/master/Azure%20Storage%20Logs%20Ingestion/storagelogs.ps1\">here</a>."
+        },
+        "conditionalVisibility": {
+          "parameterName": "Subscription",
+          "comparison": "isEqualTo"
+        },
+        "name": "text - 3"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "AzureStorage_CL\r\n| summarize count() by StorageAccountName_s, operation_type_s \r\n| join kind= inner (AzureStorage_CL\r\n| make-series Trend = count() default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by operation_type_s    \r\n) on operation_type_s\r\n| project-away TimeGenerated\r\n| extend  operation_type_s1 = operation_type_s\r\n| union (\r\nAzureStorage_CL \r\n| summarize Count = count()  \r\n | extend jkey = 1\r\n | join kind=inner (\r\nAzureStorage_CL\r\n| make-series Trend = count() default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain}\r\n| extend jkey = 1\r\n ) on jkey\r\n)\r\n| order by StorageAccountName_s, operation_type_s",
+          "size": 3,
+          "title": "Storage Account Activity",
+          "timeContext": {
+            "durationMs": 0
+          },
+          "timeContextFromParameter": "TimeRange",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspaces}"
+          ],
+          "visualization": "tiles",
+          "tileSettings": {
+            "titleContent": {
+              "columnMatch": "StorageAccountName_s",
+              "formatter": 1,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            "subtitleContent": {
+              "columnMatch": "operation_type_s",
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            "leftContent": {
+              "columnMatch": "count_",
+              "formatter": 12,
+              "formatOptions": {
+                "palette": "auto",
+                "showIcon": true
+              },
+              "numberFormat": {
+                "unit": 17,
+                "options": {
+                  "maximumSignificantDigits": 3,
+                  "maximumFractionDigits": 2
+                }
+              }
+            },
+            "secondaryContent": {
+              "columnMatch": "Trend",
+              "formatter": 9,
+              "formatOptions": {
+                "palette": "gray",
+                "showIcon": true
+              }
+            },
+            "showBorder": false
+          }
+        },
+        "name": "query - 10"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "AzureStorage_CL \r\n| where http_status_code_s == \"404\" \r\n| summarize count() by StorageAccountName_s",
+          "size": 1,
+          "title": "Failure count",
+          "timeContext": {
+            "durationMs": 0
+          },
+          "timeContextFromParameter": "TimeRange",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspaces}"
+          ],
+          "visualization": "piechart",
+          "chartSettings": {
+            "showMetrics": false,
+            "showLegend": true,
+            "ySettings": {
+              "unit": 17,
+              "min": null,
+              "max": null
+            }
+          }
+        },
+        "customWidth": "40",
+        "name": "query - 5"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "AzureStorage_CL \r\n| where http_status_code_s == \"404\" \r\n| summarize count() by Subscription_s, ResourceGroup, StorageAccountName_s",
+          "size": 0,
+          "title": "Number of Failures across Storage Accounts",
+          "timeContext": {
+            "durationMs": 0
+          },
+          "timeContextFromParameter": "TimeRange",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspaces}"
+          ],
+          "gridSettings": {
+            "formatters": [
+              {
+                "columnMatch": "Subscription_s",
+                "formatter": 0,
+                "formatOptions": {
+                  "showIcon": true
+                }
+              },
+              {
+                "columnMatch": "ResourceGroup",
+                "formatter": 0,
+                "formatOptions": {
+                  "showIcon": true
+                }
+              },
+              {
+                "columnMatch": "StorageAccountName_s",
+                "formatter": 0,
+                "formatOptions": {
+                  "showIcon": true
+                }
+              },
+              {
+                "columnMatch": "count_",
+                "formatter": 4,
+                "formatOptions": {
+                  "palette": "coldHot",
+                  "showIcon": true
+                }
+              }
+            ],
+            "labelSettings": [
+              {
+                "columnId": "Subscription_s",
+                "label": "Subscription Name"
+              },
+              {
+                "columnId": "ResourceGroup",
+                "label": "Resource Group"
+              },
+              {
+                "columnId": "StorageAccountName_s",
+                "label": "Storage Account Name"
+              },
+              {
+                "columnId": "count_",
+                "label": "Failure Count"
+              }
+            ]
+          }
+        },
+        "customWidth": "60",
+        "name": "query - 4"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "AzureStorage_CL \r\n| where http_status_code_s == \"404\" \r\n| summarize count() by request_status_s ",
+          "size": 1,
+          "title": "Failures by Request Status",
+          "timeContext": {
+            "durationMs": 0
+          },
+          "timeContextFromParameter": "TimeRange",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspaces}"
+          ],
+          "visualization": "piechart",
+          "chartSettings": {
+            "showMetrics": false,
+            "showLegend": true
+          }
+        },
+        "customWidth": "40",
+        "name": "query - 7"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "AzureStorage_CL \r\n| where http_status_code_s == \"404\" \r\n| summarize count() by StorageAccountName_s, request_status_s ",
+          "size": 0,
+          "title": "Failures By Request Status Detail",
+          "timeContext": {
+            "durationMs": 0
+          },
+          "timeContextFromParameter": "TimeRange",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspaces}"
+          ],
+          "gridSettings": {
+            "formatters": [
+              {
+                "columnMatch": "StorageAccountName_s",
+                "formatter": 0,
+                "formatOptions": {
+                  "showIcon": true
+                }
+              },
+              {
+                "columnMatch": "request_status_s",
+                "formatter": 0,
+                "formatOptions": {
+                  "showIcon": true
+                }
+              },
+              {
+                "columnMatch": "count_",
+                "formatter": 4,
+                "formatOptions": {
+                  "palette": "coldHot",
+                  "showIcon": true
+                }
+              }
+            ],
+            "labelSettings": [
+              {
+                "columnId": "StorageAccountName_s",
+                "label": "Storage Account Name"
+              },
+              {
+                "columnId": "request_status_s",
+                "label": "Request Status"
+              },
+              {
+                "columnId": "count_",
+                "label": "Failure Count"
+              }
+            ]
+          }
+        },
+        "customWidth": "60",
+        "name": "query - 8"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "AzureStorage_CL \r\n| summarize count() by operation_type_s\r\n| take 5",
+          "size": 0,
+          "title": "Top 5 Operations",
+          "timeContext": {
+            "durationMs": 0
+          },
+          "timeContextFromParameter": "TimeRange",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspaces}"
+          ],
+          "visualization": "barchart"
+        },
+        "customWidth": "50",
+        "name": "query - 9"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "AzureStorage_CL \r\n| summarize count() by operation_type_s",
+          "size": 0,
+          "title": "Top Operation Types",
+          "timeContext": {
+            "durationMs": 0
+          },
+          "timeContextFromParameter": "TimeRange",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspaces}"
+          ]
+        },
+        "customWidth": "50",
+        "name": "query - 6"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "AzureStorage_CL \r\n| summarize avg(toint(end_to_end_latency_in_ms_s)) by bin(TimeGenerated, 10m), StorageAccountName_s, operation_type_s \r\n| order by TimeGenerated desc ",
+          "size": 0,
+          "aggregation": 3,
+          "title": "End to End Transaction Latency",
+          "timeContext": {
+            "durationMs": 0
+          },
+          "timeContextFromParameter": "TimeRange",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspaces}"
+          ],
+          "visualization": "linechart"
+        },
+        "name": "query - 0"
+      }
+    ],
+    "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+  }
