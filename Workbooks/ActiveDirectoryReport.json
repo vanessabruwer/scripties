@@ -1,0 +1,616 @@
+{
+    "version": "Notebook/1.0",
+    "items": [
+      {
+        "type": 1,
+        "content": {
+          "json": "# Active Directory Report"
+        },
+        "name": "text - 0"
+      },
+      {
+        "type": 9,
+        "content": {
+          "version": "KqlParameterItem/1.0",
+          "crossComponentResources": [
+            "{Subscriptions}"
+          ],
+          "parameters": [
+            {
+              "id": "050d59d7-2f5b-4fcb-b316-ca42fe93d8c7",
+              "version": "KqlParameterItem/1.0",
+              "name": "Subscriptions",
+              "type": 6,
+              "isRequired": true,
+              "multiSelect": true,
+              "quote": "'",
+              "delimiter": ",",
+              "query": "summarize by subscriptionId\r\n| project value = strcat('/subscriptions/', subscriptionId), label = subscriptionId",
+              "crossComponentResources": [
+                "value::selected"
+              ],
+              "value": [],
+              "typeSettings": {
+                "additionalResourceOptions": [
+                  "value::all"
+                ]
+              },
+              "queryType": 1,
+              "resourceType": "microsoft.resourcegraph/resources"
+            },
+            {
+              "id": "25fbe93b-d364-4781-ad39-8cdd6e96266e",
+              "version": "KqlParameterItem/1.0",
+              "name": "Workspaces",
+              "type": 5,
+              "isRequired": true,
+              "multiSelect": true,
+              "quote": "'",
+              "delimiter": ",",
+              "query": "where type =~ 'microsoft.operationalinsights/workspaces'\r\n| summarize by id, name\r\n| project id",
+              "crossComponentResources": [
+                "{Subscriptions}"
+              ],
+              "value": [
+                "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765/resourceGroups/northwind-vb/providers/Microsoft.OperationalInsights/workspaces/NW-LA-Demo",
+                "/subscriptions/5733bcb3-7fde-4caf-8629-41dc15e3b352/resourceGroups/CH-OpsRG-Pri/providers/Microsoft.OperationalInsights/workspaces/CH-LA",
+                "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765/resourceGroups/northwind-vb/providers/Microsoft.OperationalInsights/workspaces/nw-la-demo"
+              ],
+              "typeSettings": {
+                "additionalResourceOptions": [
+                  "value::all"
+                ]
+              },
+              "queryType": 1,
+              "resourceType": "microsoft.resourcegraph/resources"
+            },
+            {
+              "id": "26cd4cfa-1c4f-491c-b628-2598ebf504a5",
+              "version": "KqlParameterItem/1.0",
+              "name": "TimeRange",
+              "label": "Time Range",
+              "type": 4,
+              "isRequired": true,
+              "value": {
+                "durationMs": 43200000
+              },
+              "typeSettings": {
+                "selectableValues": [
+                  {
+                    "durationMs": 3600000
+                  },
+                  {
+                    "durationMs": 14400000
+                  },
+                  {
+                    "durationMs": 43200000
+                  },
+                  {
+                    "durationMs": 86400000
+                  },
+                  {
+                    "durationMs": 172800000
+                  },
+                  {
+                    "durationMs": 259200000
+                  },
+                  {
+                    "durationMs": 604800000
+                  },
+                  {
+                    "durationMs": 2419200000
+                  },
+                  {
+                    "durationMs": 2592000000
+                  },
+                  {
+                    "durationMs": 5184000000
+                  },
+                  {
+                    "durationMs": 7776000000
+                  }
+                ],
+                "allowCustom": true
+              },
+              "resourceType": "microsoft.insights/components"
+            }
+          ],
+          "style": "pills",
+          "queryType": 1,
+          "resourceType": "microsoft.resourcegraph/resources"
+        },
+        "name": "parameters - 2"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "This report focuses on Active Directory Services, and relies on the following:\r\n* Active Directory Health Check solution\r\n* Security Event collection enabled in Azure Security Center/Sentinel"
+        },
+        "name": "text - 1"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "## Active Directory Security and Compliance"
+        },
+        "name": "text - 13"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "ADAssessmentRecommendation \r\n| where FocusArea == \"Security and Compliance\" \r\n| join (ADAssessmentRecommendation \r\n| where FocusArea == \"Security and Compliance\" \r\n| distinct RecommendationId) on RecommendationId \r\n| summarize count() by RecommendationResult ",
+          "size": 0,
+          "title": "Active Directory Security and Compliance",
+          "noDataMessage": "No Recommendations or Findings",
+          "timeContext": {
+            "durationMs": 0
+          },
+          "timeContextFromParameter": "TimeRange",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspaces}"
+          ],
+          "visualization": "piechart",
+          "chartSettings": {}
+        },
+        "customWidth": "45",
+        "showPin": true,
+        "name": "adhc-seccompie"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "ADAssessmentRecommendation \r\n| where FocusAreaId==\"f14449df-1309-43e6-8f02-2d373d89daa8\" \r\n| summarize arg_max(TimeGenerated, *) by RecommendationId, AffectedObjectUniqueName \r\n|where RecommendationResult  == \"Failed\" \r\n| sort by RecommendationWeight desc, TimeGenerated desc",
+          "size": 0,
+          "title": "Security and Compliance",
+          "noDataMessage": "No recommendations in the selected time range",
+          "timeContext": {
+            "durationMs": 0
+          },
+          "timeContextFromParameter": "TimeRange",
+          "showExportToExcel": true,
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspaces}"
+          ]
+        },
+        "customWidth": "55",
+        "showPin": true,
+        "name": "adhc-seccomp"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "## Security Events"
+        },
+        "name": "text - 14"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "SecurityEvent\r\n| where Channel == \"Security\"\r\n| summarize count() by Activity",
+          "size": 1,
+          "title": "Security Events Summary",
+          "noDataMessage": "No Security Events collected",
+          "timeContext": {
+            "durationMs": 0
+          },
+          "timeContextFromParameter": "TimeRange",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspaces}"
+          ],
+          "visualization": "piechart"
+        },
+        "showPin": true,
+        "name": "seceventssummary"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "SecurityEvent \r\n| where Channel == \"Security\" and (Activity contains \"account\" or Activity contains \"logon\")\r\n| where AccountType <> \"Machine\" \r\n| parse Activity with * \" - \" ActivityName\r\n| summarize EventCount = count() by ActivityName\r\n| order by EventCount desc",
+          "size": 2,
+          "title": "Account Related Security Events",
+          "noDataMessage": "No events collected in the selected time range",
+          "timeContext": {
+            "durationMs": 0
+          },
+          "timeContextFromParameter": "TimeRange",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspaces}"
+          ],
+          "visualization": "graph",
+          "tileSettings": {
+            "titleContent": {
+              "columnMatch": "Activity",
+              "formatter": 1,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            "leftContent": {
+              "columnMatch": "EventCount",
+              "formatter": 12,
+              "formatOptions": {
+                "palette": "coldHot",
+                "showIcon": true,
+                "workbookContext": null
+              },
+              "numberFormat": {
+                "unit": 17,
+                "options": {
+                  "style": "decimal",
+                  "useGrouping": false,
+                  "maximumFractionDigits": 2,
+                  "maximumSignificantDigits": 3
+                }
+              }
+            },
+            "showBorder": false
+          },
+          "graphSettings": {
+            "type": 2,
+            "topContent": {
+              "columnMatch": "ActivityName",
+              "formatter": 1,
+              "formatOptions": {
+                "showIcon": true
+              }
+            },
+            "centerContent": {
+              "columnMatch": "EventCount",
+              "formatter": 1,
+              "formatOptions": {
+                "showIcon": true
+              },
+              "numberFormat": {
+                "unit": 17,
+                "options": {
+                  "style": "decimal",
+                  "useGrouping": false,
+                  "maximumFractionDigits": 2,
+                  "maximumSignificantDigits": 3
+                }
+              }
+            },
+            "nodeIdField": "ActivityName",
+            "nodeSize": null,
+            "staticNodeSize": 100,
+            "colorSettings": {
+              "nodeColorField": "EventCount",
+              "type": 4,
+              "heatmapPalette": "coldHot",
+              "heatmapMin": null,
+              "heatmapMax": null
+            },
+            "hivesMargin": 10
+          }
+        },
+        "customWidth": "60",
+        "showPin": true,
+        "name": "seceventaccevents"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "SecurityEvent \r\n| where Channel == \"Security\" and (Activity contains \"account\" or Activity contains \"logon\")\r\n| where AccountType <> \"Machine\"\r\n| parse Activity with * \" - \" ActivityName\r\n| summarize EventCount = count() by ActivityName\r\n| order by EventCount desc",
+          "size": 0,
+          "title": "Account Related Security Events",
+          "noDataMessage": "No events collected in the specified time range",
+          "timeContext": {
+            "durationMs": 0
+          },
+          "timeContextFromParameter": "TimeRange",
+          "showExportToExcel": true,
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspaces}"
+          ],
+          "gridSettings": {
+            "formatters": [
+              {
+                "columnMatch": "EventCount",
+                "formatter": 4,
+                "formatOptions": {
+                  "palette": "coldHot",
+                  "showIcon": true
+                },
+                "numberFormat": {
+                  "unit": 0,
+                  "options": {
+                    "style": "decimal",
+                    "useGrouping": true
+                  }
+                }
+              }
+            ],
+            "labelSettings": [
+              {
+                "columnId": "EventCount",
+                "label": "Count"
+              }
+            ]
+          }
+        },
+        "customWidth": "40",
+        "name": "seceventsaccountdetail"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "## Logon Failures"
+        },
+        "name": "text - 15"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "SecurityEvent \r\n| where Channel == \"Security\" and EventID == 4625\r\n| summarize [\"Event Count\"] = count() by bin(TimeGenerated,{TimeRange:grain})",
+          "size": 0,
+          "title": "Event Timeline: An account failed to log on",
+          "noDataMessage": "No events collected in the specified time range",
+          "timeContext": {
+            "durationMs": 0
+          },
+          "timeContextFromParameter": "TimeRange",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspaces}"
+          ],
+          "visualization": "linechart"
+        },
+        "name": "seceventfailedlogon"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "SecurityEvent \r\n| where Channel == \"Security\" and EventID == 4625\r\n| summarize FailureCount = count() by Account\r\n| sort by FailureCount desc \r\n| take 10",
+          "size": 0,
+          "timeContext": {
+            "durationMs": 0
+          },
+          "timeContextFromParameter": "TimeRange",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspaces}"
+          ],
+          "visualization": "categoricalbar",
+          "chartSettings": {}
+        },
+        "customWidth": "50",
+        "showPin": true,
+        "name": "seceventslogonfailuresaccountgr"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "SecurityEvent \r\n| where Channel == \"Security\" and EventID == 4625\r\n| summarize FailureCount = count() by Account\r\n| sort by FailureCount desc \r\n| take 10",
+          "size": 0,
+          "title": "Top 10 Accounts with Failed to Logon events",
+          "noDataMessage": "No events detected in the selected time range",
+          "timeContext": {
+            "durationMs": 0
+          },
+          "timeContextFromParameter": "TimeRange",
+          "showExportToExcel": true,
+          "exportToExcelOptions": "all",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspaces}"
+          ],
+          "gridSettings": {
+            "formatters": [
+              {
+                "columnMatch": "FailureCount",
+                "formatter": 4,
+                "formatOptions": {
+                  "palette": "coldHot",
+                  "showIcon": true
+                },
+                "numberFormat": {
+                  "unit": 0,
+                  "options": {
+                    "style": "decimal",
+                    "useGrouping": true
+                  }
+                }
+              }
+            ],
+            "labelSettings": [
+              {
+                "columnId": "Account"
+              },
+              {
+                "columnId": "FailureCount",
+                "label": "Count"
+              }
+            ]
+          }
+        },
+        "customWidth": "50",
+        "name": "seceventsfailedlogonaccount"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "SecurityEvent \r\n| where Channel == \"Security\" and EventID == 4625\r\n| summarize FailureCount = count() by Computer\r\n| sort by FailureCount desc \r\n| take 10",
+          "size": 0,
+          "title": "Top 10 Failed Logon Events by Computer",
+          "noDataMessage": "No events detected in the specified time range",
+          "timeContext": {
+            "durationMs": 0
+          },
+          "timeContextFromParameter": "TimeRange",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspaces}"
+          ],
+          "visualization": "barchart"
+        },
+        "customWidth": "50",
+        "showPin": true,
+        "name": "seceventfailedlogoncompgr"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "SecurityEvent \r\n| where Channel == \"Security\" and EventID == 4625\r\n| summarize FailureCount = count() by Computer\r\n| sort by FailureCount desc \r\n| take 10",
+          "size": 0,
+          "title": "Top 10 Failed Logon Events by Computer",
+          "noDataMessage": "No events detected in the specified time range",
+          "timeContext": {
+            "durationMs": 0
+          },
+          "timeContextFromParameter": "TimeRange",
+          "showExportToExcel": true,
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspaces}"
+          ],
+          "gridSettings": {
+            "formatters": [
+              {
+                "columnMatch": "FailureCount",
+                "formatter": 4,
+                "formatOptions": {
+                  "palette": "coldHot",
+                  "showIcon": true
+                },
+                "numberFormat": {
+                  "unit": 0,
+                  "options": {
+                    "style": "decimal",
+                    "useGrouping": true
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "customWidth": "50",
+        "name": "seceventsfailedlogoncomp"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "## Security Group Changes"
+        },
+        "name": "text - 16"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "SecurityEvent \r\n| where EventID between (4727 .. 4735) or EventID==4737 or EventID between (4754 .. 4758) or EventID between (631 .. 639) or EventID==641 or EventID between (658 .. 662)\r\n| summarize [\"Event Count\"] = count() by bin(TimeGenerated,{TimeRange:grain})",
+          "size": 0,
+          "title": "Event Timeline: Security Group Changes",
+          "noDataMessage": "No events detected in the specified time range",
+          "timeContext": {
+            "durationMs": 0
+          },
+          "timeContextFromParameter": "TimeRange",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspaces}"
+          ],
+          "visualization": "linechart"
+        },
+        "name": "seceventssecgroupchanges"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "SecurityEvent \r\n| where EventID between (4727 .. 4735) or EventID==4737 or EventID between (4754 .. 4758) or EventID between (631 .. 639) or EventID==641 or EventID between (658 .. 662)\r\n| parse Activity with * \" - \" ActivityName\r\n| summarize count() by ActivityName",
+          "size": 0,
+          "title": "Security Group Changes by Activity",
+          "noDataMessage": "No events detected in the specified time range",
+          "timeContext": {
+            "durationMs": 0
+          },
+          "timeContextFromParameter": "TimeRange",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspaces}"
+          ],
+          "visualization": "categoricalbar"
+        },
+        "customWidth": "50",
+        "showPin": true,
+        "name": "seceventssecgroupchangesgr"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "SecurityEvent \r\n| where EventID between (4727 .. 4735) or EventID==4737 or EventID between (4754 .. 4758) or EventID between (631 .. 639) or EventID==641 or EventID between (658 .. 662)\r\n| summarize count() by  TargetUserName",
+          "size": 0,
+          "title": "Security Group Changes by Groups Affected",
+          "noDataMessage": "No events detected in the specified time range.",
+          "timeContext": {
+            "durationMs": 0
+          },
+          "timeContextFromParameter": "TimeRange",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspaces}"
+          ],
+          "visualization": "barchart"
+        },
+        "customWidth": "50",
+        "showPin": true,
+        "name": "seceventssecgroupsbygroup"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "SecurityEvent \r\n| where EventID between (4727 .. 4735) or EventID==4737 or EventID between (4754 .. 4758) or EventID between (631 .. 639) or EventID==641 or EventID between (658 .. 662)\r\n| join (Heartbeat | project SourceComputer = Computer, SourceComputerId) on SourceComputerId\r\n| parse Activity with * \" - \" ActivityName\r\n| project TimeGenerated, Account, AccountType, Computer, ActivityName, SubjectAccount, SubjectDomainName, SubjectUserName, TargetUserName, SourceComputer ",
+          "size": 0,
+          "showAnalytics": true,
+          "title": "All Security Group Change Events",
+          "noDataMessage": "No events detected in the specified time range",
+          "timeContext": {
+            "durationMs": 0
+          },
+          "timeContextFromParameter": "TimeRange",
+          "showExportToExcel": true,
+          "exportToExcelOptions": "all",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspaces}"
+          ],
+          "gridSettings": {
+            "filter": true
+          }
+        },
+        "name": "seceventsgroupchanges"
+      }
+    ],
+    "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+  }
