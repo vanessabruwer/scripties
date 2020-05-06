@@ -1,408 +1,675 @@
 {
-    "version": "Notebook/1.0",
-    "items": [
-      {
-        "type": 1,
-        "content": {
-          "json": "# Windows Virtual Desktop"
-        },
-        "name": "text - 1"
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 1,
+      "content": {
+        "json": "# Windows Virtual Desktop"
       },
-      {
-        "type": 9,
-        "content": {
-          "version": "KqlParameterItem/1.0",
-          "crossComponentResources": [
-            "{Workspace}"
-          ],
-          "parameters": [
-            {
-              "id": "b859a03f-2283-43dd-8536-42714bbfced6",
-              "version": "KqlParameterItem/1.0",
-              "name": "Subscription",
-              "type": 6,
-              "isRequired": true,
-              "multiSelect": true,
-              "quote": "'",
-              "delimiter": ",",
-              "query": "summarize by subscriptionId\r\n| project value = strcat('/subscriptions/', subscriptionId), label = subscriptionId",
-              "crossComponentResources": [
-                "value::selected"
-              ],
-              "typeSettings": {
-                "additionalResourceOptions": [
-                  "value::all"
-                ]
-              },
-              "queryType": 1,
-              "resourceType": "microsoft.resourcegraph/resources",
-              "value": [
-                "/subscriptions/182b812e-c741-4b45-93c6-26bdc3e4353b"
+      "name": "text - 1"
+    },
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "parameters": [
+          {
+            "id": "b859a03f-2283-43dd-8536-42714bbfced6",
+            "version": "KqlParameterItem/1.0",
+            "name": "Subscription",
+            "type": 6,
+            "isRequired": true,
+            "multiSelect": true,
+            "quote": "'",
+            "delimiter": ",",
+            "query": "summarize by subscriptionId\r\n| project value = strcat('/subscriptions/', subscriptionId), label = subscriptionId",
+            "crossComponentResources": [
+              "value::selected"
+            ],
+            "typeSettings": {
+              "additionalResourceOptions": [
+                "value::all"
               ]
             },
-            {
-              "id": "8df9c309-e7d1-43ad-b2ad-2d190c0c4e60",
-              "version": "KqlParameterItem/1.0",
-              "name": "Workspace",
-              "type": 5,
-              "isRequired": true,
-              "multiSelect": true,
-              "quote": "'",
-              "delimiter": ",",
-              "query": "where type =~ 'microsoft.operationalinsights/workspaces'\r\n| summarize by id, name\r\n| project id",
-              "crossComponentResources": [
-                "{Subscription}"
-              ],
-              "typeSettings": {
-                "additionalResourceOptions": [
-                  "value::all"
-                ]
-              },
-              "queryType": 1,
-              "resourceType": "microsoft.resourcegraph/resources",
-              "value": [
-                "/subscriptions/182b812e-c741-4b45-93c6-26bdc3e4353b/resourceGroups/wvd-spring-update/providers/Microsoft.OperationalInsights/workspaces/wvdlogsetspn"
-              ]
-            },
-            {
-              "id": "04a8ead2-1fb2-4666-a7b0-6d92e3c29b46",
-              "version": "KqlParameterItem/1.0",
-              "name": "TimeRange",
-              "type": 4,
-              "typeSettings": {
-                "selectableValues": [
-                  {
-                    "durationMs": 14400000
-                  },
-                  {
-                    "durationMs": 43200000
-                  },
-                  {
-                    "durationMs": 86400000
-                  },
-                  {
-                    "durationMs": 172800000
-                  },
-                  {
-                    "durationMs": 259200000
-                  },
-                  {
-                    "durationMs": 604800000
-                  },
-                  {
-                    "durationMs": 1209600000
-                  },
-                  {
-                    "durationMs": 2592000000
-                  },
-                  {
-                    "durationMs": 5184000000
-                  },
-                  {
-                    "durationMs": 7776000000
-                  }
-                ],
-                "allowCustom": true
-              },
-              "resourceType": "microsoft.insights/components",
-              "value": {
-                "durationMs": 604800000
-              }
-            },
-            {
-              "id": "9ef4161f-2a14-4bbb-a0b8-7ed97d085537",
-              "version": "KqlParameterItem/1.0",
-              "name": "UserName",
-              "type": 2,
-              "isRequired": true,
-              "query": "WVDCheckpoints \r\n| summarize count() by UserName \r\n| order by count_ desc\r\n| project UserName",
-              "crossComponentResources": [
-                "{Workspace}"
-              ],
-              "value": "wvd9@setspn.tk",
-              "typeSettings": {
-                "additionalResourceOptions": []
-              },
-              "timeContext": {
-                "durationMs": 0
-              },
-              "timeContextFromParameter": "TimeRange",
-              "queryType": 0,
-              "resourceType": "microsoft.operationalinsights/workspaces"
-            }
-          ],
-          "style": "pills",
-          "queryType": 0,
-          "resourceType": "microsoft.operationalinsights/workspaces"
-        },
-        "name": "parameters - 2"
-      },
-      {
-        "type": 3,
-        "content": {
-          "version": "KqlItem/1.0",
-          "query": "WVDConnections\r\n| summarize count() by State, bin(TimeGenerated, 1h) ",
-          "size": 0,
-          "title": "Windows Virtual Desktop Connections",
-          "noDataMessage": "No connections detected in the specified time frame",
-          "noDataMessageStyle": 5,
-          "timeContext": {
-            "durationMs": 0
-          },
-          "timeContextFromParameter": "TimeRange",
-          "queryType": 0,
-          "resourceType": "microsoft.operationalinsights/workspaces",
-          "crossComponentResources": [
-            "{Workspace}"
-          ],
-          "visualization": "linechart"
-        },
-        "name": "WVDConnections"
-      },
-      {
-        "type": 3,
-        "content": {
-          "version": "KqlItem/1.0",
-          "query": "WVDErrors \r\n| summarize ErrorCount = count() by Source ",
-          "size": 0,
-          "title": "WVD Errors by Source",
-          "noDataMessage": "No errors report",
-          "timeContext": {
-            "durationMs": 0
-          },
-          "timeContextFromParameter": "TimeRange",
-          "queryType": 0,
-          "resourceType": "microsoft.operationalinsights/workspaces",
-          "crossComponentResources": [
-            "{Workspace}"
-          ],
-          "visualization": "piechart"
-        },
-        "customWidth": "50",
-        "showPin": true,
-        "name": "WVDErrorspie"
-      },
-      {
-        "type": 3,
-        "content": {
-          "version": "KqlItem/1.0",
-          "query": "WVDErrors \r\n| summarize ErrorCount = count() by Source ",
-          "size": 0,
-          "showAnalytics": true,
-          "title": "Windows Virtual Desktop Errors by Source",
-          "noDataMessage": "No errors detected in the selected time period",
-          "timeContext": {
-            "durationMs": 0
-          },
-          "timeContextFromParameter": "TimeRange",
-          "queryType": 0,
-          "resourceType": "microsoft.operationalinsights/workspaces",
-          "crossComponentResources": [
-            "{Workspace}"
-          ],
-          "gridSettings": {
-            "formatters": [
-              {
-                "columnMatch": "ErrorCount",
-                "formatter": 4,
-                "formatOptions": {
-                  "palette": "coldHot"
-                }
-              }
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources",
+            "value": [
+              "/subscriptions/182b812e-c741-4b45-93c6-26bdc3e4353b"
             ]
+          },
+          {
+            "id": "8df9c309-e7d1-43ad-b2ad-2d190c0c4e60",
+            "version": "KqlParameterItem/1.0",
+            "name": "Workspace",
+            "type": 5,
+            "isRequired": true,
+            "multiSelect": true,
+            "quote": "'",
+            "delimiter": ",",
+            "query": "where type =~ 'microsoft.operationalinsights/workspaces'\r\n| summarize by id, name\r\n| project id",
+            "crossComponentResources": [
+              "{Subscription}"
+            ],
+            "typeSettings": {
+              "additionalResourceOptions": [
+                "value::all"
+              ]
+            },
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources",
+            "value": [
+              "/subscriptions/182b812e-c741-4b45-93c6-26bdc3e4353b/resourceGroups/wvd-spring-update/providers/Microsoft.OperationalInsights/workspaces/wvdlogsetspn"
+            ]
+          },
+          {
+            "id": "04a8ead2-1fb2-4666-a7b0-6d92e3c29b46",
+            "version": "KqlParameterItem/1.0",
+            "name": "TimeRange",
+            "type": 4,
+            "isRequired": true,
+            "value": {
+              "durationMs": 604800000
+            },
+            "typeSettings": {
+              "selectableValues": [
+                {
+                  "durationMs": 14400000
+                },
+                {
+                  "durationMs": 43200000
+                },
+                {
+                  "durationMs": 86400000
+                },
+                {
+                  "durationMs": 172800000
+                },
+                {
+                  "durationMs": 259200000
+                },
+                {
+                  "durationMs": 604800000
+                },
+                {
+                  "durationMs": 1209600000
+                },
+                {
+                  "durationMs": 2592000000
+                },
+                {
+                  "durationMs": 5184000000
+                },
+                {
+                  "durationMs": 7776000000
+                }
+              ],
+              "allowCustom": true
+            },
+            "resourceType": "microsoft.insights/components"
           }
-        },
-        "customWidth": "50",
-        "name": "WVDErrors"
+        ],
+        "style": "pills",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components"
       },
-      {
-        "type": 3,
-        "content": {
-          "version": "KqlItem/1.0",
-          "query": "WVDConnections \r\n| summarize ConnectCount = count() by ConnectionType ",
-          "size": 0,
-          "title": "WVD Connections by ConnectionType",
-          "noDataMessage": "No connections detection in the selected time period",
-          "noDataMessageStyle": 4,
-          "timeContext": {
-            "durationMs": 0
+      "name": "parameters - 2"
+    },
+    {
+      "type": 11,
+      "content": {
+        "version": "LinkItem/1.0",
+        "style": "tabs",
+        "links": [
+          {
+            "cellValue": "selectedTab",
+            "linkTarget": "parameter",
+            "linkLabel": "Overview",
+            "subTarget": "Overview",
+            "style": "link"
           },
-          "timeContextFromParameter": "TimeRange",
-          "queryType": 0,
-          "resourceType": "microsoft.operationalinsights/workspaces",
-          "crossComponentResources": [
-            "{Workspace}"
-          ],
-          "visualization": "piechart"
-        },
-        "customWidth": "50",
-        "showPin": true,
-        "name": "WVDCOnnectionsbyType"
+          {
+            "cellValue": "selectedTab",
+            "linkTarget": "parameter",
+            "linkLabel": "Connections",
+            "subTarget": "Connections",
+            "style": "link"
+          },
+          {
+            "cellValue": "selectedTab",
+            "linkTarget": "parameter",
+            "linkLabel": "User Sessions",
+            "subTarget": "UserSessions",
+            "style": "link"
+          },
+          {
+            "cellValue": "selectedTab",
+            "linkTarget": "parameter",
+            "linkLabel": "Performance",
+            "subTarget": "Performance",
+            "style": "link"
+          }
+        ]
       },
-      {
-        "type": 3,
-        "content": {
-          "version": "KqlItem/1.0",
-          "query": "WVDConnections \r\n| summarize ConnectCount = count() by ConnectionType \r\n| order by ConnectCount desc",
-          "size": 0,
-          "showAnalytics": true,
-          "title": "Windows Virtual Desktop Connections by Connection Type",
-          "noDataMessage": "No connections detected during the selected time frame",
-          "noDataMessageStyle": 4,
-          "timeContext": {
-            "durationMs": 0
+      "name": "links - 14"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "resources\r\n| where type contains  \"desktopvirtualization\"\r\n| parse type with * \"microsoft.desktopvirtualization/\" TypeName\r\n| summarize Resources=count() by TypeName\r\n| order by Resources desc",
+        "size": 1,
+        "title": "WVD Resources",
+        "noDataMessage": "No WVD resources found",
+        "queryType": 1,
+        "resourceType": "microsoft.resourcegraph/resources",
+        "crossComponentResources": [
+          "{Subscription}"
+        ],
+        "visualization": "tiles",
+        "tileSettings": {
+          "titleContent": {
+            "columnMatch": "TypeName",
+            "formatter": 1,
+            "formatOptions": {}
           },
-          "timeContextFromParameter": "TimeRange",
-          "queryType": 0,
-          "resourceType": "microsoft.operationalinsights/workspaces",
-          "crossComponentResources": [
-            "{Workspace}"
+          "leftContent": {
+            "columnMatch": "Resources",
+            "formatter": 12,
+            "formatOptions": {
+              "palette": "auto"
+            },
+            "numberFormat": {
+              "unit": 17,
+              "options": {
+                "style": "decimal",
+                "useGrouping": false,
+                "maximumFractionDigits": 2,
+                "maximumSignificantDigits": 3
+              }
+            }
+          },
+          "showBorder": false
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "Overview"
+      },
+      "customWidth": "50",
+      "name": "ResourceBreakdown"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "resources\r\n| where type contains  \"desktopvirtualization\"\r\n| parse type with * \"microsoft.desktopvirtualization/\" TypeName\r\n| project name, TypeName, kind, location, resourceGroup\r\n| order by TypeName asc",
+        "size": 0,
+        "title": "WVD Resources",
+        "noDataMessage": "No WVD resources found",
+        "queryType": 1,
+        "resourceType": "microsoft.resourcegraph/resources",
+        "crossComponentResources": [
+          "{Subscription}"
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "Overview"
+      },
+      "customWidth": "50",
+      "name": "wvdresourceslist"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## Connection related reporting"
+      },
+      "conditionalVisibility": {
+        "parameterName": "seelctedTab",
+        "comparison": "isEqualTo",
+        "value": "Connections"
+      },
+      "name": "connectionheader"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "WVDConnections\r\n| summarize count() by State, bin(TimeGenerated, 1h) ",
+        "size": 0,
+        "title": "Windows Virtual Desktop Connections",
+        "noDataMessage": "No connections detected in the specified time frame",
+        "noDataMessageStyle": 5,
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "visualization": "linechart"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "Connections"
+      },
+      "name": "WVDConnections"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "WVDErrors \r\n| summarize ErrorCount = count() by Source ",
+        "size": 0,
+        "title": "WVD Errors by Source",
+        "noDataMessage": "No errors report",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "visualization": "piechart"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "Connections"
+      },
+      "customWidth": "50",
+      "showPin": true,
+      "name": "WVDErrorspie"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "WVDErrors \r\n| summarize ErrorCount = count() by Source ",
+        "size": 0,
+        "showAnalytics": true,
+        "title": "Windows Virtual Desktop Errors by Source",
+        "noDataMessage": "No errors detected in the selected time period",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "ErrorCount",
+              "formatter": 4,
+              "formatOptions": {
+                "palette": "coldHot"
+              }
+            }
           ]
-        },
-        "customWidth": "50",
-        "name": "WVDConnectionsbyTypelist"
+        }
       },
-      {
-        "type": 1,
-        "content": {
-          "json": "### User Specific Reporting"
-        },
-        "name": "text - 6"
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "Connections"
       },
-      {
-        "type": 3,
-        "content": {
-          "version": "KqlItem/1.0",
-          "query": "WVDConnections\r\n|where UserName == '{UserName}'\r\n|take 100\r\n|sort by TimeGenerated asc, CorrelationId\r\n|summarize  Connectcount = dcount(CorrelationId) by bin(TimeGenerated, 1d)\r\n",
-          "size": 0,
-          "showAnalytics": true,
-          "title": "Connections per day for user {UserName}",
-          "noDataMessage": "No connections detected for this user in the specified time frame",
-          "timeContext": {
-            "durationMs": 0
-          },
-          "timeContextFromParameter": "TimeRange",
-          "queryType": 0,
-          "resourceType": "microsoft.operationalinsights/workspaces",
-          "crossComponentResources": [
-            "{Workspace}"
-          ],
-          "visualization": "timechart"
+      "customWidth": "50",
+      "name": "WVDErrors"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "WVDConnections \r\n| summarize ConnectCount = count() by ConnectionType ",
+        "size": 0,
+        "title": "WVD Connections by ConnectionType",
+        "noDataMessage": "No connections detection in the selected time period",
+        "noDataMessageStyle": 4,
+        "timeContext": {
+          "durationMs": 0
         },
-        "customWidth": "50",
-        "name": "ConnectionsbyUser"
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "visualization": "piechart"
       },
-      {
-        "type": 3,
-        "content": {
-          "version": "KqlItem/1.0",
-          "query": "WVDConnections\r\n|where UserName == '{UserName}'\r\n|take 100\r\n|sort by TimeGenerated asc, CorrelationId\r\n|summarize  Connectcount = dcount(CorrelationId) by bin(TimeGenerated, 1d)\r\n",
-          "size": 0,
-          "showAnalytics": true,
-          "title": "Connections per day for user {UserName}",
-          "noDataMessage": "No connections detected for this user in the specified time frame",
-          "timeContext": {
-            "durationMs": 0
-          },
-          "timeContextFromParameter": "TimeRange",
-          "queryType": 0,
-          "resourceType": "microsoft.operationalinsights/workspaces",
-          "crossComponentResources": [
-            "{Workspace}"
-          ]
-        },
-        "customWidth": "50",
-        "name": "ConnectionsbyUser - Copy"
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "Connections"
       },
-      {
-        "type": 3,
-        "content": {
-          "version": "KqlItem/1.0",
-          "query": "WVDConnections\r\n|where UserName == '{UserName}'\r\n|take 100\r\n|sort by TimeGenerated asc, CorrelationId",
-          "size": 0,
-          "showAnalytics": true,
-          "title": "All connections for user {UserName}",
-          "noDataMessage": "No connections detected in the specified time frame",
-          "noDataMessageStyle": 4,
-          "timeContext": {
-            "durationMs": 0
-          },
-          "timeContextFromParameter": "TimeRange",
-          "showExportToExcel": true,
-          "queryType": 0,
-          "resourceType": "microsoft.operationalinsights/workspaces",
-          "crossComponentResources": [
-            "{Workspace}"
-          ]
+      "customWidth": "50",
+      "showPin": true,
+      "name": "WVDCOnnectionsbyType"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "WVDConnections \r\n| summarize ConnectCount = count() by ConnectionType \r\n| order by ConnectCount desc",
+        "size": 0,
+        "showAnalytics": true,
+        "title": "Windows Virtual Desktop Connections by Connection Type",
+        "noDataMessage": "No connections detected during the selected time frame",
+        "noDataMessageStyle": 4,
+        "timeContext": {
+          "durationMs": 0
         },
-        "name": "AllConnectionsforUser"
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspace}"
+        ]
       },
-      {
-        "type": 3,
-        "content": {
-          "version": "KqlItem/1.0",
-          "query": "let Events = WVDConnections | where UserName == '{UserName}' ;\r\nEvents\r\n| where State == \"Connected\"\r\n| project CorrelationId , UserName, ResourceAlias , StartTime=TimeGenerated\r\n| join (Events\r\n| where State == \"Completed\"\r\n| project EndTime=TimeGenerated, CorrelationId)\r\non CorrelationId\r\n| project Duration = EndTime - StartTime, ResourceAlias\r\n| sort by Duration desc\r\n",
-          "size": 0,
-          "title": "Session duration by user - {UserName}",
-          "noDataMessage": "No sessions detected in the selected time frame for user {UserName}",
-          "timeContext": {
-            "durationMs": 0
-          },
-          "timeContextFromParameter": "TimeRange",
-          "queryType": 0,
-          "resourceType": "microsoft.operationalinsights/workspaces",
-          "crossComponentResources": [
-            "{Workspace}"
-          ]
-        },
-        "customWidth": "50",
-        "name": "SessiondurationbyUser - Copy"
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "Connections"
       },
-      {
-        "type": 3,
-        "content": {
-          "version": "KqlItem/1.0",
-          "query": "WVDErrors\r\n| where UserName == '{UserName}'\r\n| summarize count() by Source ",
-          "size": 0,
-          "title": "WVD Errors by Source - {UserName}",
-          "noDataMessage": "No errors detected for {UserName} in the selected time range",
-          "timeContext": {
-            "durationMs": 0
-          },
-          "timeContextFromParameter": "TimeRange",
-          "queryType": 0,
-          "resourceType": "microsoft.operationalinsights/workspaces",
-          "crossComponentResources": [
-            "{Workspace}"
-          ],
-          "visualization": "piechart"
-        },
-        "customWidth": "50",
-        "showPin": true,
-        "name": "wvderrorsbyuserandsource"
+      "customWidth": "50",
+      "name": "WVDConnectionsbyTypelist"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## User Specific Reporting"
       },
-      {
-        "type": 3,
-        "content": {
-          "version": "KqlItem/1.0",
-          "query": "WVDErrors\r\n| where UserName == '{UserName}'\r\n|take 100\r\n",
-          "size": 0,
-          "showAnalytics": true,
-          "title": "WVD Errors by User - {UserName}",
-          "noDataMessage": "No errors detected in the specified time range",
-          "timeContext": {
-            "durationMs": 0
-          },
-          "timeContextFromParameter": "TimeRange",
-          "showExportToExcel": true,
-          "queryType": 0,
-          "resourceType": "microsoft.operationalinsights/workspaces",
-          "crossComponentResources": [
-            "{Workspace}"
-          ]
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "UserSessions"
+      },
+      "name": "UserSessionsheading"
+    },
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "parameters": [
+          {
+            "id": "da0a6fb9-4b5d-412d-bb3e-3bd9562ad4eb",
+            "version": "KqlParameterItem/1.0",
+            "name": "UserName",
+            "type": 2,
+            "isRequired": true,
+            "query": "WVDCheckpoints \r\n| summarize count() by UserName \r\n| order by count_ desc\r\n| project UserName",
+            "crossComponentResources": [
+              "{Workspace}"
+            ],
+            "value": "wvd12@setspn.tk",
+            "typeSettings": {
+              "additionalResourceOptions": []
+            },
+            "timeContext": {
+              "durationMs": 0
+            },
+            "timeContextFromParameter": "TimeRange",
+            "queryType": 0,
+            "resourceType": "microsoft.operationalinsights/workspaces"
+          }
+        ],
+        "style": "pills",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "UserSessions"
+      },
+      "name": "UserNameDropdown"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "WVDConnections\r\n|where UserName == '{UserName}'\r\n|take 100\r\n|sort by TimeGenerated asc, CorrelationId\r\n|summarize  Connectcount = dcount(CorrelationId) by bin(TimeGenerated, 1d)\r\n",
+        "size": 0,
+        "showAnalytics": true,
+        "title": "Connections per day for user {UserName}",
+        "noDataMessage": "No connections detected for this user in the specified time frame",
+        "timeContext": {
+          "durationMs": 0
         },
-        "name": "WVDErrorsbyUser"
-      }
-    ],
-    "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
-  }
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "visualization": "timechart"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "UserSessions"
+      },
+      "customWidth": "50",
+      "name": "ConnectionsbyUser"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "WVDConnections\r\n|where UserName == '{UserName}'\r\n|take 100\r\n|sort by TimeGenerated asc, CorrelationId\r\n|summarize  Connectcount = dcount(CorrelationId) by bin(TimeGenerated, 1d)\r\n",
+        "size": 0,
+        "showAnalytics": true,
+        "title": "Connections per day for user {UserName}",
+        "noDataMessage": "No connections detected for this user in the specified time frame",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspace}"
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "UserSessions"
+      },
+      "customWidth": "50",
+      "name": "ConnectionsbyUserlist"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "WVDConnections\r\n|where UserName == '{UserName}'\r\n|take 100\r\n|sort by TimeGenerated asc, CorrelationId",
+        "size": 0,
+        "showAnalytics": true,
+        "title": "All connections for user {UserName}",
+        "noDataMessage": "No connections detected in the specified time frame",
+        "noDataMessageStyle": 4,
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "showExportToExcel": true,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspace}"
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "UserSessions"
+      },
+      "name": "AllConnectionsforUser"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let Events = WVDConnections | where UserName == '{UserName}' ;\r\nEvents\r\n| where State == \"Connected\"\r\n| project CorrelationId , UserName, ResourceAlias , StartTime=TimeGenerated\r\n| join (Events\r\n| where State == \"Completed\"\r\n| project EndTime=TimeGenerated, CorrelationId)\r\non CorrelationId\r\n| project Duration = EndTime - StartTime, ResourceAlias\r\n| sort by Duration desc\r\n",
+        "size": 0,
+        "title": "Session duration by user - {UserName}",
+        "noDataMessage": "No sessions detected in the selected time frame for user {UserName}",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspace}"
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "UserSessions"
+      },
+      "customWidth": "50",
+      "name": "SessiondurationbyUser - Copy"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "WVDErrors\r\n| where UserName == '{UserName}'\r\n| summarize count() by Source ",
+        "size": 0,
+        "title": "WVD Errors by Source - {UserName}",
+        "noDataMessage": "No errors detected for {UserName} in the selected time range",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "visualization": "piechart"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "UserSessions"
+      },
+      "customWidth": "50",
+      "showPin": true,
+      "name": "wvderrorsbyuserandsource"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "WVDErrors\r\n| where UserName == '{UserName}'\r\n|take 100\r\n",
+        "size": 0,
+        "showAnalytics": true,
+        "title": "WVD Errors by User - {UserName}",
+        "noDataMessage": "No errors detected in the specified time range",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "showExportToExcel": true,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspace}"
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "UserSessions"
+      },
+      "name": "WVDErrorsbyUser"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## Performance"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "Performance"
+      },
+      "name": "performanceheader"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "Perf\r\n| where ObjectName == \"Processor\"\r\n| where CounterName == \"% Processor Time\"\r\n| summarize avg(CounterValue) by bin(TimeGenerated, 2m), Computer",
+        "size": 0,
+        "aggregation": 3,
+        "title": "% Processor Time",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "visualization": "linechart"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "Performance"
+      },
+      "customWidth": "50",
+      "showPin": true,
+      "name": "perf-cpu"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "Perf\r\n| where ObjectName == \"Memory\"\r\n| where CounterName == \"% Committed Bytes In Use\" \r\n| summarize avg(CounterValue) by bin(TimeGenerated, 2m), Computer",
+        "size": 0,
+        "aggregation": 3,
+        "title": "% Committed Bytes In Use",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "visualization": "linechart"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "Performance"
+      },
+      "customWidth": "50",
+      "name": "perf-memory"
+    }
+  ],
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}
