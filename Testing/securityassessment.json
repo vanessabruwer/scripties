@@ -42,8 +42,7 @@
           {
             "id": "e04bd6ba-c1ad-466c-9835-c9f01dacdbe1",
             "version": "KqlParameterItem/1.0",
-            "name": "LogsWorkspaces",
-            "label": "Logs Workspaces",
+            "name": "Workspaces",
             "type": 5,
             "multiSelect": true,
             "quote": "'",
@@ -53,10 +52,13 @@
               "{Subscriptions}"
             ],
             "value": [
-              "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765/resourceGroups/northwind-vb/providers/Microsoft.OperationalInsights/workspaces/NW-LA-Demo"
+              "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765/resourceGroups/northwind-vb/providers/Microsoft.OperationalInsights/workspaces/NW-LA-Demo",
+              "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765/resourceGroups/northwind-vb/providers/microsoft.operationalinsights/workspaces/nw-la-demo"
             ],
             "typeSettings": {
-              "additionalResourceOptions": []
+              "additionalResourceOptions": [
+                "value::all"
+              ]
             },
             "queryType": 1,
             "resourceType": "microsoft.resourcegraph/resources"
@@ -67,7 +69,7 @@
             "name": "TimeRange",
             "type": 4,
             "value": {
-              "durationMs": 604800000
+              "durationMs": 1209600000
             },
             "typeSettings": {
               "selectableValues": [
@@ -114,17 +116,22 @@
           }
         ],
         "style": "pills",
-        "queryType": 0,
-        "resourceType": "microsoft.operationalinsights/workspaces"
+        "queryType": 1,
+        "resourceType": "microsoft.resourcegraph/resources"
       },
       "name": "parameters - 4"
     },
     {
       "type": 1,
       "content": {
-        "json": "This report relies on assessment data from Azure Security Center with ATP intergation enabled, Azure Sentinel, Azure Policy and Azure Monitor. The Azure Monitor output relies on the following solutions:\r\n\r\n<ul>\r\n<li>Update Management (In Azure Automation)</li>\r\n<li>Anti-Malware assessment</li>\r\n</ul>"
+        "json": "This report relies on assessment data from Azure Security Center with ATP integration enabled, Azure Sentinel, Azure Policy and Azure Monitor. The Azure Monitor output relies on the following solutions:\r\n\r\n<ul>\r\n<li>Update Management (In Azure Automation)</li>\r\n<li>Anti-Malware assessment</li>\r\n</ul>"
       },
-      "name": "text - 1",
+      "conditionalVisibility": {
+        "parameterName": "Workspaces",
+        "comparison": "isEqualTo",
+        "value": ""
+      },
+      "name": "Reliance",
       "styleSettings": {
         "margin": "0",
         "padding": "2",
@@ -164,6 +171,13 @@
             "linkLabel": "Key Vault",
             "subTarget": "KeyVault",
             "style": "link"
+          },
+          {
+            "cellValue": "selectedTab",
+            "linkTarget": "parameter",
+            "linkLabel": "Application Gateway",
+            "subTarget": "AppGateway",
+            "style": "link"
           }
         ]
       },
@@ -195,7 +209,7 @@
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
         "crossComponentResources": [
-          "{LogsWorkspaces}"
+          "{Workspaces}"
         ],
         "visualization": "tiles",
         "tileSettings": {
@@ -263,7 +277,7 @@
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
         "crossComponentResources": [
-          "{LogsWorkspaces}"
+          "{Workspaces}"
         ],
         "visualization": "linechart",
         "chartSettings": {
@@ -300,6 +314,7 @@
         "version": "KqlItem/1.0",
         "query": "SecurityAlert \r\n| summarize count() by AlertName, AlertSeverity, ProductName",
         "size": 0,
+        "showAnalytics": true,
         "title": "Security Alerts",
         "noDataMessage": "No Active Incidents in Sentinel",
         "timeContext": {
@@ -310,34 +325,13 @@
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
         "crossComponentResources": [
-          "{LogsWorkspaces}"
+          "{Workspaces}"
         ],
         "gridSettings": {
           "formatters": [
             {
               "columnMatch": "$gen_group",
               "formatter": 1,
-              "formatOptions": {
-                "showIcon": true
-              }
-            },
-            {
-              "columnMatch": "AlertName",
-              "formatter": 0,
-              "formatOptions": {
-                "showIcon": true
-              }
-            },
-            {
-              "columnMatch": "AlertSeverity",
-              "formatter": 0,
-              "formatOptions": {
-                "showIcon": true
-              }
-            },
-            {
-              "columnMatch": "ProductName",
-              "formatter": 0,
               "formatOptions": {
                 "showIcon": true
               }
@@ -396,7 +390,7 @@
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
         "crossComponentResources": [
-          "{LogsWorkspaces}"
+          "{Workspaces}"
         ],
         "visualization": "tiles",
         "tileSettings": {
@@ -489,7 +483,7 @@
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
         "crossComponentResources": [
-          "{LogsWorkspaces}"
+          "{Workspaces}"
         ],
         "gridSettings": {
           "formatters": [
@@ -556,7 +550,7 @@
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
         "crossComponentResources": [
-          "{LogsWorkspaces}"
+          "{Workspaces}"
         ],
         "visualization": "linechart"
       },
@@ -582,34 +576,13 @@
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
         "crossComponentResources": [
-          "{LogsWorkspaces}"
+          "{Workspaces}"
         ],
         "gridSettings": {
           "formatters": [
             {
-              "columnMatch": "Computer",
-              "formatter": 0,
-              "formatOptions": {
-                "showIcon": true
-              }
-            },
-            {
-              "columnMatch": "AlertTitle",
-              "formatter": 0,
-              "formatOptions": {
-                "showIcon": true
-              }
-            },
-            {
               "columnMatch": "Description",
               "formatter": 1,
-              "formatOptions": {
-                "showIcon": true
-              }
-            },
-            {
-              "columnMatch": "SourceSystem",
-              "formatter": 0,
               "formatOptions": {
                 "showIcon": true
               }
@@ -650,7 +623,7 @@
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
         "crossComponentResources": [
-          "{LogsWorkspaces}"
+          "{Workspaces}"
         ],
         "visualization": "piechart"
       },
@@ -678,7 +651,7 @@
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
         "crossComponentResources": [
-          "{LogsWorkspaces}"
+          "{Workspaces}"
         ]
       },
       "conditionalVisibility": {
@@ -703,7 +676,7 @@
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
         "crossComponentResources": [
-          "{LogsWorkspaces}"
+          "{Workspaces}"
         ],
         "visualization": "piechart"
       },
@@ -730,17 +703,10 @@
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
         "crossComponentResources": [
-          "{LogsWorkspaces}"
+          "{Workspaces}"
         ],
         "gridSettings": {
           "formatters": [
-            {
-              "columnMatch": "Computer",
-              "formatter": 0,
-              "formatOptions": {
-                "showIcon": true
-              }
-            },
             {
               "columnMatch": "count_",
               "formatter": 4,
@@ -770,11 +736,25 @@
       "name": "UpdateComplianceDetail"
     },
     {
+      "type": 1,
+      "content": {
+        "json": "# Azure Activity Log"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "ActivityLog"
+      },
+      "name": "activitylogheader"
+    },
+    {
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
         "query": "AzureActivity\r\n| where TimeGenerated > ago(7d)\r\n| summarize count() by Level",
         "size": 4,
+        "title": "Activity Log Summary",
+        "noDataMessage": "No activity log entries found in the selected time range",
         "timeContext": {
           "durationMs": 0
         },
@@ -782,7 +762,7 @@
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
         "crossComponentResources": [
-          "{LogsWorkspaces}"
+          "{Workspaces}"
         ],
         "visualization": "tiles",
         "tileSettings": {
@@ -851,6 +831,7 @@
         "comparison": "isEqualTo",
         "value": "ActivityLog"
       },
+      "showPin": true,
       "name": "ActivityLogSummary"
     },
     {
@@ -859,6 +840,7 @@
         "version": "KqlItem/1.0",
         "query": "AzureActivity\r\n| make-series Count = count() default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain}",
         "size": 1,
+        "title": "Activity Log Activities over time",
         "timeContext": {
           "durationMs": 0
         },
@@ -866,7 +848,7 @@
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
         "crossComponentResources": [
-          "{LogsWorkspaces}"
+          "{Workspaces}"
         ],
         "visualization": "areachart"
       },
@@ -875,7 +857,8 @@
         "comparison": "isEqualTo",
         "value": "ActivityLog"
       },
-      "name": "query - 17"
+      "showPin": true,
+      "name": "ActivityLogActivity"
     },
     {
       "type": 3,
@@ -891,7 +874,7 @@
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
         "crossComponentResources": [
-          "{LogsWorkspaces}"
+          "{Workspaces}"
         ],
         "visualization": "linechart",
         "chartSettings": {
@@ -940,7 +923,7 @@
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
         "crossComponentResources": [
-          "{LogsWorkspaces}"
+          "{Workspaces}"
         ],
         "visualization": "graph",
         "tileSettings": {
@@ -953,6 +936,7 @@
             "columnMatch": "dcount_ResourceProvider",
             "formatter": 12,
             "formatOptions": {
+              "palette": "auto",
               "showIcon": true
             }
           },
@@ -975,13 +959,7 @@
           "nodeIdField": "dcount_ResourceProvider",
           "nodeSize": null,
           "staticNodeSize": 100,
-          "colorSettings": {
-            "nodeColorField": "dcount_ResourceProvider",
-            "type": 4,
-            "heatmapPalette": "coldHot",
-            "heatmapMin": null,
-            "heatmapMax": null
-          },
+          "colorSettings": null,
           "hivesMargin": 5
         }
       },
@@ -991,13 +969,14 @@
         "value": "ActivityLog"
       },
       "customWidth": "30",
-      "name": "query - 20"
+      "showPin": true,
+      "name": "activitylogcountresourceproviders"
     },
     {
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "AzureActivity\r\n| summarize AggregatedValue = count() by ResourceProvider\r\n| order by AggregatedValue desc nulls last \r\n| take 10",
+        "query": "AzureActivity\r\n| extend ResourceProviderName = iif(ResourceProvider == \"\", \"No Resource Provider\", ResourceProvider)\r\n| summarize AggregatedValue = count() by ResourceProviderName\r\n| order by AggregatedValue desc nulls last \r\n| take 10",
         "size": 0,
         "title": "Top 10 Resource Providers",
         "timeContext": {
@@ -1009,23 +988,26 @@
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
         "crossComponentResources": [
-          "{LogsWorkspaces}"
+          "{Workspaces}"
         ],
         "gridSettings": {
           "formatters": [
-            {
-              "columnMatch": "ResourceProvider",
-              "formatter": 0,
-              "formatOptions": {
-                "showIcon": true
-              }
-            },
             {
               "columnMatch": "AggregatedValue",
               "formatter": 4,
               "formatOptions": {
                 "showIcon": true
               }
+            }
+          ],
+          "labelSettings": [
+            {
+              "columnId": "ResourceProviderName",
+              "label": "Resource Provider"
+            },
+            {
+              "columnId": "AggregatedValue",
+              "label": "Count"
             }
           ]
         }
@@ -1054,7 +1036,7 @@
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
         "crossComponentResources": [
-          "{LogsWorkspaces}"
+          "{Workspaces}"
         ],
         "gridSettings": {
           "filter": true
@@ -1066,6 +1048,18 @@
         "value": "ActivityLog"
       },
       "name": "query - 24"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "# Azure Keyvault"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "KeyVault"
+      },
+      "name": "keyvaultheader"
     },
     {
       "type": 3,
@@ -1081,7 +1075,7 @@
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
         "crossComponentResources": [
-          "{LogsWorkspaces}"
+          "{Workspaces}"
         ],
         "chartSettings": {
           "seriesLabelSettings": [
@@ -1105,25 +1099,20 @@
         "version": "KqlItem/1.0",
         "query": "AzureDiagnostics\r\n| where ResourceProvider ==\"MICROSOFT.KEYVAULT\"\r\n| summarize count() by CallerIPAddress\r\n| order by count_ desc",
         "size": 0,
+        "showAnalytics": true,
         "title": "Calls to Keyvault",
         "timeContext": {
           "durationMs": 0
         },
         "timeContextFromParameter": "TimeRange",
+        "showExportToExcel": true,
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
         "crossComponentResources": [
-          "{LogsWorkspaces}"
+          "{Workspaces}"
         ],
         "gridSettings": {
           "formatters": [
-            {
-              "columnMatch": "CallerIPAddress",
-              "formatter": 0,
-              "formatOptions": {
-                "showIcon": true
-              }
-            },
             {
               "columnMatch": "count_",
               "formatter": 4,
@@ -1148,7 +1137,99 @@
         "comparison": "isEqualTo",
         "value": "KeyVault"
       },
-      "name": "query - 23"
+      "name": "keyvaultcalls"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureDiagnostics\r\n| where ResourceProvider ==\"MICROSOFT.KEYVAULT\" \r\n| where httpStatusCode_d >= 300 and not(OperationName == \"Authentication\" and httpStatusCode_d == 401)\r\n| summarize count() by requestUri_s, ResultSignature",
+        "size": 0,
+        "showAnalytics": true,
+        "title": "Failed Keyvault requests by status code",
+        "noDataMessage": "No failures detected in the selected time range",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "showExportToExcel": true,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspaces}"
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "KeyVault"
+      },
+      "name": "keyvaultfailures"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "# Application Gateway"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "AppGateway"
+      },
+      "name": "appgw"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureDiagnostics\r\n| where ResourceType == \"APPLICATIONGATEWAYS\" and OperationName == \"ApplicationGatewayAccess\" and httpStatus_d > 399\r\n| summarize AggregatedValue = count() by bin(TimeGenerated, 1h), instanceId_s",
+        "size": 0,
+        "title": "Application Gateway Failed Requests per hour",
+        "noDataMessage": "No failures detected in the selected time range",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspaces}"
+        ],
+        "visualization": "linechart"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "AppGateway"
+      },
+      "name": "appgwfailures"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureDiagnostics\r\n| where ResourceType == \"APPLICATIONGATEWAYS\" and OperationName == \"ApplicationGatewayAccess\" and httpStatus_d > 399\r\n| extend UserAgent = iif(userAgent_s == \"\", \"No UserAgent\", userAgent_s)\r\n| summarize AggregatedValue = count() by UserAgent, instanceId_s\r\n| sort by AggregatedValue desc",
+        "size": 0,
+        "showAnalytics": true,
+        "title": "Application Gateway Errors by User Agent",
+        "noDataMessage": "No failures detected in the specified time range",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "showExportToExcel": true,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspaces}"
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "AppGateway"
+      },
+      "name": "appgwfailuresbyuseragent"
     }
   ],
   "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
