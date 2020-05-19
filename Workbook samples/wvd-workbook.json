@@ -240,7 +240,7 @@
       "content": {
         "version": "KqlItem/1.0",
         "query": "resources\r\n| where type contains  \"desktopvirtualization\"\r\n| parse type with * \"microsoft.desktopvirtualization/\" TypeName\r\n| project name, TypeName, kind, location, resourceGroup\r\n| order by TypeName asc",
-        "size": 0,
+        "size": 1,
         "title": "WVD Resources",
         "noDataMessage": "No WVD resources found",
         "queryType": 1,
@@ -262,7 +262,7 @@
       "content": {
         "version": "KqlItem/1.0",
         "query": "Heartbeat \r\n| parse Computer with ComputerName \".\" *\r\n| where ComputerName in ({Computers})\r\n| summarize arg_max(TimeGenerated, *) by Computer\r\n| project Computer, TimeGenerated, ComputerIP, OSType, OSMajorVersion",
-        "size": 0,
+        "size": 1,
         "showAnalytics": true,
         "title": "Last Heartbeat for each WVD Machine",
         "timeContext": {
@@ -281,6 +281,129 @@
         "value": "Overview"
       },
       "name": "heartbeats"
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 9,
+            "content": {
+              "version": "KqlParameterItem/1.0",
+              "crossComponentResources": [
+                "{Subscription}"
+              ],
+              "parameters": [
+                {
+                  "id": "6f258d9e-d021-4bc0-a32e-67f7247bc9ed",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "ResourceGroup",
+                  "type": 5,
+                  "isRequired": true,
+                  "query": "resources\r\n| where type contains  \"desktopvirtualization\"\r\n| distinct resourceGroup",
+                  "crossComponentResources": [
+                    "{Subscription}"
+                  ],
+                  "value": "wvd-spring-update",
+                  "typeSettings": {
+                    "additionalResourceOptions": [
+                      "value::1"
+                    ]
+                  },
+                  "timeContext": {
+                    "durationMs": 0
+                  },
+                  "timeContextFromParameter": "TimeRange",
+                  "queryType": 1,
+                  "resourceType": "microsoft.resourcegraph/resources"
+                },
+                {
+                  "id": "2b67ac34-40dc-4205-a9c7-7c5f11cc630e",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "HostPool",
+                  "type": 5,
+                  "isRequired": true,
+                  "query": "resources\r\n| where type contains  \"desktopvirtualization\" and resourceGroup contains ('{ResourceGroup}')\r\n| parse type with * \"microsoft.desktopvirtualization/\" TypeName\r\n| where TypeName == \"hostpools\"\r\n| project name",
+                  "crossComponentResources": [
+                    "{Subscription}"
+                  ],
+                  "value": "thovuy-pool",
+                  "typeSettings": {
+                    "additionalResourceOptions": [
+                      "value::1"
+                    ]
+                  },
+                  "timeContext": {
+                    "durationMs": 0
+                  },
+                  "timeContextFromParameter": "TimeRange",
+                  "queryType": 1,
+                  "resourceType": "microsoft.resourcegraph/resources"
+                },
+                {
+                  "id": "a4c80c7d-9cd4-42e8-b319-256e003ac905",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "SubscriptionID",
+                  "type": 6,
+                  "isRequired": true,
+                  "query": "resourcecontainers\r\n | where type == \"microsoft.resources/subscriptions\"\r\n | project subscriptionId\r\n",
+                  "crossComponentResources": [
+                    "{Subscription}"
+                  ],
+                  "value": "/subscriptions/182b812e-c741-4b45-93c6-26bdc3e4353b",
+                  "typeSettings": {
+                    "additionalResourceOptions": [
+                      "value::1"
+                    ]
+                  },
+                  "timeContext": {
+                    "durationMs": 0
+                  },
+                  "timeContextFromParameter": "TimeRange",
+                  "queryType": 1,
+                  "resourceType": "microsoft.resourcegraph/resources"
+                }
+              ],
+              "style": "pills",
+              "queryType": 1,
+              "resourceType": "microsoft.resourcegraph/resources"
+            },
+            "name": "parameters - 0"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "{\"version\":\"ARMEndpoint/1.0\",\"data\":null,\"headers\":[],\"method\":\"GET\",\"path\":\"{SubscriptionID}/resourcegroups/{ResourceGroup}/providers/Microsoft.DesktopVirtualization/hostpools/{HostPool}/sessionhosts?api-version=2019-01-23-preview\",\"urlParams\":[],\"batchDisabled\":false,\"transformers\":[{\"type\":\"jsonpath\",\"settings\":{\"tablePath\":\"$.value\",\"columns\":[{\"path\":\"$.name\",\"columnid\":\"Name\"},{\"path\":\"$.properties.lastHeartBeat\",\"columnid\":\"LastHeartbeat\"},{\"path\":\"$.properties.sessions\",\"columnid\":\"Sessions\"}]}}]}",
+              "size": 1,
+              "queryType": 12,
+              "gridSettings": {
+                "sortBy": [
+                  {
+                    "itemKey": "Name",
+                    "sortOrder": 1
+                  }
+                ]
+              },
+              "sortBy": [
+                {
+                  "itemKey": "Name",
+                  "sortOrder": 1
+                }
+              ]
+            },
+            "name": "query - 1"
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "Overview"
+      },
+      "name": "hostpoolavailability"
     },
     {
       "type": 1,
@@ -350,6 +473,33 @@
         "value": "Connections"
       },
       "name": "query - 23"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "WVDConnections\r\n| where State == \"Connected\" and TimeGenerated > ago(7d) \r\n| summarize ConnectedUsers = dcount(UserName) by bin(TimeGenerated, 1d) ",
+        "size": 0,
+        "aggregation": 3,
+        "title": "Daily Active Users for the last 7 days",
+        "noDataMessage": "No connections detected in the last 7 days",
+        "timeContext": {
+          "durationMs": 604800000
+        },
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "visualization": "categoricalbar"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "Connections"
+      },
+      "showPin": true,
+      "name": "wvd-usersperday"
     },
     {
       "type": 3,
@@ -433,8 +583,20 @@
                 "palette": "coldHot"
               }
             }
+          ],
+          "sortBy": [
+            {
+              "itemKey": "$gen_bar_ErrorCount_1",
+              "sortOrder": 2
+            }
           ]
-        }
+        },
+        "sortBy": [
+          {
+            "itemKey": "$gen_bar_ErrorCount_1",
+            "sortOrder": 2
+          }
+        ]
       },
       "conditionalVisibility": {
         "parameterName": "selectedTab",
@@ -1020,6 +1182,118 @@
         "value": "Performance"
       },
       "name": "query - 28"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "Perf\r\n| where ObjectName == \"LogicalDisk\" and CounterName == \"% Free Space\" \r\n| where InstanceName <> \"_Total\" \r\n| summarize AggregatedValue = avg(CounterValue) by bin(TimeGenerated, 10m), Computer, InstanceName ",
+        "size": 0,
+        "aggregation": 3,
+        "title": "Logical Disk Space Used by Host",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "visualization": "timechart"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "Performance"
+      },
+      "customWidth": "50",
+      "showPin": true,
+      "name": "diskspacebyhost"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "Perf\r\n| where ObjectName == \"Processor\" and CounterName == \"% Processor Time\"\r\n| summarize AggregatedValue = avg(CounterValue) by bin(TimeGenerated, 10m), Computer, InstanceName ",
+        "size": 0,
+        "aggregation": 3,
+        "title": "Processor % Processor Time per host",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "visualization": "timechart"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "Performance"
+      },
+      "customWidth": "50",
+      "showPin": true,
+      "name": "hostperf-processor"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "Perf\r\n| where ObjectName == \"Memory\" and CounterName == \"% Committed Bytes In Use\"\r\n| summarize AggregatedValue = avg(CounterValue) by bin(TimeGenerated, 10m), Computer, InstanceName",
+        "size": 0,
+        "aggregation": 3,
+        "title": "Memory % Committed bytes in use per Host",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "visualization": "timechart"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "Performance"
+      },
+      "customWidth": "50",
+      "showPin": true,
+      "name": "hostperf-memory"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "Perf\r\n| where ObjectName == \"Network Interface\" \r\n| summarize AggregatedValue = avg(CounterValue) by bin(TimeGenerated, 10m), Computer, InstanceName, CounterName ",
+        "size": 0,
+        "aggregation": 3,
+        "title": "Network Performance per host",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "visualization": "timechart"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "Performance"
+      },
+      "customWidth": "50",
+      "showPin": true,
+      "name": "hostperf-network"
     }
   ],
   "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
