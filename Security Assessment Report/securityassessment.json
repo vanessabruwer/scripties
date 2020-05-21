@@ -378,6 +378,7 @@
         "comparison": "isEqualTo",
         "value": "SecurityOverview"
       },
+      "showPin": true,
       "name": "securityeventsbysev"
     },
     {
@@ -637,10 +638,12 @@
               "version": "KqlItem/1.0",
               "query": "SecurityAlert\r\n| where ProductName in ({ProductName})\r\n| summarize CountofAlerts = count() by AlertName, AlertSeverity, ProductName, Description, RemediationSteps\r\n| extend AdditionalInfo = strcat(\"Description: \", Description, \"<br>Remediation Steps: \", RemediationSteps)\r\n| sort by AlertSeverity desc",
               "size": 0,
+              "showAnalytics": true,
               "timeContext": {
                 "durationMs": 0
               },
               "timeContextFromParameter": "TimeRange",
+              "showExportToExcel": true,
               "queryType": 0,
               "resourceType": "microsoft.operationalinsights/workspaces",
               "crossComponentResources": [
@@ -789,6 +792,7 @@
         "comparison": "isEqualTo",
         "value": "SecurityAlerts"
       },
+      "showPin": true,
       "name": "SecurityAlertTrend"
     },
     {
@@ -798,12 +802,14 @@
         "query": "securityresources\r\n| where type contains \"microsoft.security/securitystatusessummaries\"\r\n| extend \r\n\tHealthy = trim (' ', tostring(properties.resourceHealthSummary.healthy)),\r\n\tMedium = trim (' ', tostring(properties.resourceHealthSummary.medium)),\r\n\tHigh = trim (' ', tostring(properties.resourceHealthSummary.high)),\r\n\tNone = trim (' ', tostring(properties.resourceHealthSummary.none)),\r\n\tLow = trim (' ', tostring(properties.resourceHealthSummary.low)),\r\n\tResourceCount = trim (' ', tostring(properties.resourceCount))\r\n| extend Healthy = toint(iif(isnotempty(Healthy), Healthy, '0'))\r\n| extend Medium = toint(iif(isnotempty(Medium), Medium, '0'))\r\n| extend High = toint(iif(isnotempty(High), High, '0'))\r\n| extend None = toint(iif(isnotempty(None), None, '0'))\r\n| extend Low = toint(iif(isnotempty(Low), Low, '0'))\r\n| project subscriptionId, name, ResourceCount, Healthy, Medium, High, Low, None\r\n| order by name asc",
         "size": 0,
         "title": "Resource Security Health by Resource Type",
+        "showExportToExcel": true,
         "queryType": 1,
         "resourceType": "microsoft.resourcegraph/resources",
         "crossComponentResources": [
           "{Subscriptions}"
         ],
         "visualization": "table",
+        "showExpandCollapseGrid": true,
         "gridSettings": {
           "formatters": [
             {
@@ -922,12 +928,14 @@
               "version": "KqlItem/1.0",
               "query": "SecurityRecommendation \r\n| where RecommendationState in ({RecStatus})\r\n| where RecommendationDisplayName != \"\"\r\n| extend Link = strcat(\"https://\", RecommendationLink)\r\n| parse AssessedResourceId with * \"/subscriptions/\" subscriptionId \"/\" *\r\n| summarize RecCount = count() by subscriptionId, RecommendationDisplayName, RecommendationState, Link\r\n| order by RecommendationState desc, RecCount desc",
               "size": 0,
+              "showAnalytics": true,
               "title": "Security Recommendations",
               "noDataMessage": "No Recommendations in the selected time period",
               "timeContext": {
                 "durationMs": 0
               },
               "timeContextFromParameter": "TimeRange",
+              "showExportToExcel": true,
               "queryType": 0,
               "resourceType": "microsoft.operationalinsights/workspaces",
               "crossComponentResources": [
@@ -1056,12 +1064,15 @@
         "version": "KqlItem/1.0",
         "query": "SecurityDetection\r\n| summarize DetectCount = count() by Computer, AlertTitle, Description, Provider, RemediationSteps\r\n| extend AdditionalInfo = strcat(\"Description: \", Description, \"<br>Remediation Steps: \", RemediationSteps)",
         "size": 0,
+        "showAnalytics": true,
         "title": "Threat Detections",
         "noDataMessage": "No threats detected or ATP not configured",
         "timeContext": {
           "durationMs": 0
         },
         "timeContextFromParameter": "TimeRange",
+        "showExportToExcel": true,
+        "exportToExcelOptions": "all",
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces",
         "crossComponentResources": [
@@ -1130,6 +1141,7 @@
         "comparison": "isEqualTo",
         "value": "SecurityAlerts"
       },
+      "showPin": true,
       "name": "ThreatDetection"
     },
     {
@@ -1168,7 +1180,11 @@
         "value": "UpdateStatus"
       },
       "customWidth": "50",
-      "name": "AntiMalwareProtection"
+      "showPin": true,
+      "name": "AntiMalwareProtection",
+      "styleSettings": {
+        "showBorder": true
+      }
     },
     {
       "type": 3,
@@ -1221,6 +1237,7 @@
         "value": "UpdateStatus"
       },
       "customWidth": "50",
+      "showPin": true,
       "name": "UpdateCompliance",
       "styleSettings": {
         "showBorder": true
@@ -1250,6 +1267,7 @@
         "value": "UpdateStatus"
       },
       "customWidth": "50",
+      "showPin": true,
       "name": "uplinuxpie",
       "styleSettings": {
         "showBorder": true
@@ -1550,6 +1568,7 @@
         "comparison": "isEqualTo",
         "value": "ActivityLog"
       },
+      "showPin": true,
       "name": "activitylogovertime"
     },
     {
@@ -1588,15 +1607,13 @@
         "graphSettings": {
           "type": 2,
           "topContent": {
-            "formatOptions": {
-              "showIcon": true
-            }
+            "formatOptions": {}
           },
           "centerContent": {
             "columnMatch": "dcount_ResourceProvider",
             "formatter": 12,
             "formatOptions": {
-              "showIcon": true
+              "palette": "gray"
             }
           },
           "nodeIdField": "dcount_ResourceProvider",
@@ -1621,6 +1638,7 @@
         "version": "KqlItem/1.0",
         "query": "AzureActivity\r\n| extend ResourceProviderName = iif(ResourceProvider == \"\", \"No Resource Provider\", ResourceProvider)\r\n| summarize AggregatedValue = count() by ResourceProviderName\r\n| order by AggregatedValue desc nulls last \r\n| take 10",
         "size": 0,
+        "showAnalytics": true,
         "title": "Top 10 Resource Providers",
         "timeContext": {
           "durationMs": 0
@@ -1669,6 +1687,7 @@
         "version": "KqlItem/1.0",
         "query": "AzureActivity  \r\n| where ActivityStatus == \"Failed\"\r\n| extend action_ = tostring(parse_json(Authorization).action) \r\n| extend code_ = tostring(parse_json(tostring(parse_json(tostring(parse_json(Properties).statusMessage)).error)).code) \r\n| extend message_ = tostring(parse_json(tostring(parse_json(tostring(parse_json(Properties).statusMessage)).error)).message) \r\n| project TimeGenerated, CallerIpAddress, CategoryValue, action_, code_, message_, OperationNameValue, ResourceProviderValue, ActivitySubstatus ",
         "size": 0,
+        "showAnalytics": true,
         "title": "Failures in Activity Log",
         "timeContext": {
           "durationMs": 0
@@ -1682,6 +1701,7 @@
           "{Workspaces}"
         ],
         "gridSettings": {
+          "rowLimit": 50,
           "filter": true
         }
       },
@@ -1983,8 +2003,11 @@
                   }
                 ]
               },
-              "sortBy": []
+              "sortBy": [],
+              "showExportToExcel": true,
+              "exportToExcelOptions": "all"
             },
+            "showPin": true,
             "name": "metric - 1"
           }
         ]
@@ -2026,7 +2049,8 @@
         "comparison": "isEqualTo",
         "value": "KeyVault"
       },
-      "name": "query - 22"
+      "showPin": true,
+      "name": "keyvaultactivitiesovertime"
     },
     {
       "type": 3,
@@ -2119,6 +2143,7 @@
         "version": "KqlItem/1.0",
         "query": "AzureDiagnostics\r\n| where ResourceType == \"APPLICATIONGATEWAYS\" and OperationName == \"ApplicationGatewayAccess\" and httpStatus_d > 399\r\n| summarize AggregatedValue = count() by bin(TimeGenerated, 1h), instanceId_s",
         "size": 0,
+        "aggregation": 3,
         "title": "Application Gateway Failed Requests per hour",
         "noDataMessage": "No failures detected in the selected time range",
         "timeContext": {
@@ -2137,6 +2162,7 @@
         "comparison": "isEqualTo",
         "value": "AppGateway"
       },
+      "showPin": true,
       "name": "appgwfailures"
     },
     {
