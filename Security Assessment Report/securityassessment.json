@@ -1,0 +1,2166 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 1,
+      "content": {
+        "json": "<h1>Security Assessment Report</h1>"
+      },
+      "name": "text - 0"
+    },
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "crossComponentResources": [
+          "value::selected"
+        ],
+        "parameters": [
+          {
+            "id": "f12c5d79-48c1-4adb-bad4-d4cc248f7fb9",
+            "version": "KqlParameterItem/1.0",
+            "name": "Subscriptions",
+            "type": 6,
+            "multiSelect": true,
+            "quote": "'",
+            "delimiter": ",",
+            "query": "summarize by subscriptionId\r\n| project value = strcat('/subscriptions/', subscriptionId), label = subscriptionId",
+            "crossComponentResources": [
+              "value::selected"
+            ],
+            "value": [
+              "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765",
+              "/subscriptions/b34fa96b-796e-4888-8764-bc27825098a7"
+            ],
+            "typeSettings": {
+              "additionalResourceOptions": [
+                "value::all"
+              ]
+            },
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources"
+          },
+          {
+            "id": "e04bd6ba-c1ad-466c-9835-c9f01dacdbe1",
+            "version": "KqlParameterItem/1.0",
+            "name": "Workspaces",
+            "type": 5,
+            "multiSelect": true,
+            "quote": "'",
+            "delimiter": ",",
+            "query": "where type =~ 'microsoft.operationalinsights/workspaces'\r\n| summarize by id, name\r\n| project id",
+            "crossComponentResources": [
+              "{Subscriptions}"
+            ],
+            "value": [
+              "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765/resourceGroups/northwind-vb/providers/Microsoft.OperationalInsights/workspaces/NW-LA-Demo"
+            ],
+            "typeSettings": {
+              "additionalResourceOptions": [
+                "value::all"
+              ]
+            },
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources"
+          },
+          {
+            "id": "d2345891-fe3f-4dbd-8973-ec31877d6540",
+            "version": "KqlParameterItem/1.0",
+            "name": "TimeRange",
+            "type": 4,
+            "value": {
+              "durationMs": 1209600000
+            },
+            "typeSettings": {
+              "selectableValues": [
+                {
+                  "durationMs": 3600000
+                },
+                {
+                  "durationMs": 14400000
+                },
+                {
+                  "durationMs": 43200000
+                },
+                {
+                  "durationMs": 86400000
+                },
+                {
+                  "durationMs": 172800000
+                },
+                {
+                  "durationMs": 259200000
+                },
+                {
+                  "durationMs": 604800000
+                },
+                {
+                  "durationMs": 1209600000
+                },
+                {
+                  "durationMs": 2419200000
+                },
+                {
+                  "durationMs": 2592000000
+                },
+                {
+                  "durationMs": 5184000000
+                },
+                {
+                  "durationMs": 7776000000
+                }
+              ]
+            },
+            "label": "Time Range",
+            "resourceType": "microsoft.insights/components"
+          }
+        ],
+        "style": "pills",
+        "queryType": 1,
+        "resourceType": "microsoft.resourcegraph/resources"
+      },
+      "name": "parameters - 4"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "This report relies on assessment data from Azure Security Center with ATP integration enabled, Azure Sentinel, Azure Policy and Azure Monitor. The Azure Monitor output relies on the following solutions:\r\n\r\n* Update Management (In Azure Automation)\r\n* Anti-Malware assessment\r\n* Keyvault Analytics\r\n* Application Gateway Analytics"
+      },
+      "conditionalVisibility": {
+        "parameterName": "Workspaces",
+        "comparison": "isEqualTo",
+        "value": ""
+      },
+      "name": "Reliance",
+      "styleSettings": {
+        "margin": "0",
+        "padding": "2",
+        "showBorder": true
+      }
+    },
+    {
+      "type": 11,
+      "content": {
+        "version": "LinkItem/1.0",
+        "style": "tabs",
+        "links": [
+          {
+            "cellValue": "selectedTab",
+            "linkTarget": "parameter",
+            "linkLabel": "Security Overview",
+            "subTarget": "SecurityOverview",
+            "style": "link"
+          },
+          {
+            "cellValue": "selectedTab",
+            "linkTarget": "parameter",
+            "linkLabel": "Security Alerts",
+            "subTarget": "SecurityAlerts",
+            "style": "link"
+          },
+          {
+            "cellValue": "selectedTab",
+            "linkTarget": "parameter",
+            "linkLabel": "Update and Protection Status",
+            "subTarget": "UpdateStatus",
+            "style": "link"
+          },
+          {
+            "cellValue": "selectedTab",
+            "linkTarget": "parameter",
+            "linkLabel": "Azure Activity Log",
+            "subTarget": "ActivityLog",
+            "style": "link"
+          },
+          {
+            "cellValue": "selectedTab",
+            "linkTarget": "parameter",
+            "linkLabel": "Key Vault",
+            "subTarget": "KeyVault",
+            "style": "link"
+          },
+          {
+            "cellValue": "selectedTab",
+            "linkTarget": "parameter",
+            "linkLabel": "Application Gateway",
+            "subTarget": "AppGateway",
+            "style": "link"
+          }
+        ]
+      },
+      "name": "links - 15"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "<H2>Security Overview</H2>"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "SecurityOverview"
+      },
+      "name": "text - 2"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "securityresources\r\n| where type contains \"microsoft.security/securitystatusessummaries\"\r\n| extend \r\n    Healthy = trim (' ', tostring(properties.resourceHealthSummary.healthy)),\r\n    Medium = trim (' ', tostring(properties.resourceHealthSummary.medium)),\r\n    High = trim (' ', tostring(properties.resourceHealthSummary.high)),\r\n    None = trim (' ', tostring(properties.resourceHealthSummary.none)),\r\n    Low = trim (' ', tostring(properties.resourceHealthSummary.low)),\r\n    ResourceCount = trim (' ', tostring(properties.resourceCount))\r\n| extend Healthy = toint(iif(isnotempty(Healthy), Healthy, '0'))\r\n| extend Medium = toint(iif(isnotempty(Medium), Medium, '0'))\r\n| extend High = toint(iif(isnotempty(High), High, '0'))\r\n| extend None = toint(iif(isnotempty(None), None, '0'))\r\n| extend Low = toint(iif(isnotempty(Low), Low, '0'))\r\n| project subscriptionId, name, ResourceCount, Healthy, Medium, High, Low, None\r\n| summarize sumHealth = sum(Healthy), sumMedium = sum(Medium), sumHigh = sum(High), sumLow = sum(Low), sumNone = sum(None) by subscriptionId\r\n| extend sumAll = (todouble(sumHealth) + todouble(sumMedium) + todouble(sumHigh) + todouble(sumLow))\r\n| extend sumUnhealthy = (todouble(sumMedium) + todouble(sumHigh) + todouble(sumLow))\r\n| extend sScore = (sumUnhealthy/sumAll)*100\r\n| project subscriptionId, sumHealth, sumUnhealthy, sScore",
+        "size": 1,
+        "title": "Security Health Overview",
+        "queryType": 1,
+        "resourceType": "microsoft.resourcegraph/resources",
+        "crossComponentResources": [
+          "{Subscriptions}"
+        ],
+        "visualization": "table",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "subscriptionId",
+              "formatter": 15,
+              "formatOptions": {
+                "linkTarget": "Resource"
+              }
+            },
+            {
+              "columnMatch": "sumHealth",
+              "formatter": 3,
+              "formatOptions": {
+                "palette": "green"
+              }
+            },
+            {
+              "columnMatch": "sumUnhealthy",
+              "formatter": 3,
+              "formatOptions": {
+                "palette": "red"
+              }
+            },
+            {
+              "columnMatch": "sScore",
+              "formatter": 2,
+              "formatOptions": {},
+              "numberFormat": {
+                "unit": 1,
+                "options": {
+                  "style": "decimal",
+                  "useGrouping": false
+                }
+              }
+            }
+          ],
+          "sortBy": [
+            {
+              "itemKey": "$gen_number_sScore_3",
+              "sortOrder": 2
+            }
+          ],
+          "labelSettings": [
+            {
+              "columnId": "subscriptionId",
+              "label": "Subscription"
+            },
+            {
+              "columnId": "sumHealth",
+              "label": "Healthy Resources"
+            },
+            {
+              "columnId": "sumUnhealthy",
+              "label": "Unhealthy Resources"
+            },
+            {
+              "columnId": "sScore",
+              "label": "~Secure Score",
+              "comment": "This is an estimation of your secure score (may vary by a %)"
+            }
+          ]
+        },
+        "sortBy": [
+          {
+            "itemKey": "$gen_number_sScore_3",
+            "sortOrder": 2
+          }
+        ],
+        "tileSettings": {
+          "showBorder": false,
+          "titleContent": {
+            "columnMatch": "subscriptionId",
+            "formatter": 1
+          },
+          "leftContent": {
+            "columnMatch": "sumHealth",
+            "formatter": 12,
+            "formatOptions": {
+              "palette": "auto"
+            },
+            "numberFormat": {
+              "unit": 17,
+              "options": {
+                "maximumSignificantDigits": 3,
+                "maximumFractionDigits": 2
+              }
+            }
+          }
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "SecurityOverview"
+      },
+      "showPin": true,
+      "name": "secoverview"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "SecurityAlert\r\n| summarize Count = count() by AlertSeverity, ProductName\r\n| join kind = inner (SecurityAlert\r\n | make-series Trend = count() default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by AlertSeverity)\r\n on AlertSeverity\r\n | project-away TimeGenerated\r\n| extend AlertSeveritys = AlertSeverity\r\n| union (\r\n SecurityAlert \r\n | summarize Count = count() \r\n | extend jkey = 1\r\n | join kind=inner (SecurityAlert\r\n | make-series Trend = count() default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain}\r\n | extend jkey = 1) on jkey\r\n | extend AlertSeverity = 'All', AlertSeveritys = '*' \r\n)\r\n| extend Severity = iif(AlertSeverity == \"All\", 0,iif(AlertSeverity == \"High\", 1, iif(AlertSeverity == \"Medium\", 2, iif(AlertSeverity == \"Low\", 3, 4))))\r\n| order by ProductName asc, Severity asc\r\n",
+        "size": 4,
+        "title": "Security Alerts by Severity",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspaces}"
+        ],
+        "visualization": "tiles",
+        "tileSettings": {
+          "titleContent": {
+            "columnMatch": "AlertSeverity",
+            "formatter": 1,
+            "formatOptions": {
+              "showIcon": true
+            }
+          },
+          "subtitleContent": {
+            "columnMatch": "ProductName",
+            "formatter": 1,
+            "formatOptions": {
+              "showIcon": true
+            }
+          },
+          "leftContent": {
+            "columnMatch": "Count",
+            "formatter": 12,
+            "formatOptions": {
+              "showIcon": true
+            },
+            "numberFormat": {
+              "unit": 17,
+              "options": {
+                "style": "decimal",
+                "useGrouping": false,
+                "maximumFractionDigits": 2,
+                "maximumSignificantDigits": 3
+              }
+            }
+          },
+          "secondaryContent": {
+            "columnMatch": "Trend",
+            "formatter": 9,
+            "formatOptions": {
+              "palette": "gray",
+              "showIcon": true
+            }
+          },
+          "showBorder": false
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "SecurityOverview"
+      },
+      "name": "securityeventsbysev"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "SecurityRecommendation\r\n| where RecommendationState == \"Unhealthy\"\r\n| summarize count() by RecommendationSeverity, RecommendationState\r\n| extend SortOrder = iff(RecommendationSeverity==\"High\", 3, iff(RecommendationSeverity==\"Medium\", 2, iif(RecommendationSeverity==\"Low\", 1, 0)))\r\n| order by SortOrder desc ",
+        "size": 4,
+        "title": "Security Recommendation Summary",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspaces}"
+        ],
+        "visualization": "tiles",
+        "tileSettings": {
+          "titleContent": {
+            "formatter": 1,
+            "formatOptions": {
+              "showIcon": true
+            }
+          },
+          "leftContent": {
+            "columnMatch": "count_",
+            "formatter": 12,
+            "formatOptions": {
+              "showIcon": true
+            }
+          },
+          "secondaryContent": {
+            "columnMatch": "SortOrder",
+            "formatter": 11,
+            "formatOptions": {
+              "showIcon": true
+            }
+          },
+          "showBorder": false
+        },
+        "graphSettings": {
+          "type": 0,
+          "topContent": {
+            "columnMatch": "RecommendationSeverity",
+            "formatter": 1,
+            "formatOptions": {
+              "showIcon": true
+            }
+          },
+          "centerContent": {
+            "columnMatch": "count_",
+            "formatter": 1,
+            "formatOptions": {
+              "showIcon": true
+            },
+            "numberFormat": {
+              "unit": 17,
+              "options": {
+                "maximumSignificantDigits": 3,
+                "maximumFractionDigits": 2
+              }
+            }
+          },
+          "bottomContent": {
+            "columnMatch": "RecommendationState",
+            "formatOptions": {
+              "showIcon": true
+            }
+          },
+          "nodeIdField": "RecommendationState",
+          "edgeLabel": "RecommendationState",
+          "nodeSize": null,
+          "staticNodeSize": 100,
+          "colorSettings": {
+            "nodeColorField": "SortOrder",
+            "type": 4,
+            "heatmapPalette": "hotCold",
+            "heatmapMin": null,
+            "heatmapMax": null
+          },
+          "groupByField": "RecommendationState",
+          "hivesMargin": 5
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "SecurityOverview"
+      },
+      "name": "securityrecommendationcount"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "securityresources\r\n| where type == \"microsoft.security/regulatorycompliancestandards\"\r\n| extend \r\n\tpassedControls = trim (' ', tostring(properties.passedControls)), \r\n\tfailedControls = trim(' ',tostring(properties.failedControls)), \r\n\tstate \t\t   = trim(' ', tostring(properties.state)), \r\n\tunsupportedControls = trim(' ', tostring(properties.unsupportedControls)), \r\n\tskippedControls     = trim(' ', tostring(properties.skippedControls))\r\n| project subscriptionId, name, passedControls, failedControls, unsupportedControls, skippedControls ,  link = \"https://portal.azure.com/?feature.customportal=false#blade/Microsoft_Azure_Security/SecurityMenuBlade/22\"\r\n| order by passedControls desc",
+        "size": 0,
+        "title": "Regulatory Compliance",
+        "queryType": 1,
+        "resourceType": "microsoft.resourcegraph/resources",
+        "crossComponentResources": [
+          "{Subscriptions}"
+        ],
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "name",
+              "formatter": 1,
+              "formatOptions": {
+                "linkColumn": "link",
+                "linkTarget": "CellDetails",
+                "linkIsContextBlade": false
+              }
+            },
+            {
+              "columnMatch": "passedControls",
+              "formatter": 3,
+              "formatOptions": {
+                "palette": "green"
+              }
+            },
+            {
+              "columnMatch": "failedControls",
+              "formatter": 3,
+              "formatOptions": {
+                "palette": "red"
+              }
+            },
+            {
+              "columnMatch": "subscriptionId",
+              "formatter": 15,
+              "formatOptions": {
+                "linkTarget": "Resource"
+              }
+            },
+            {
+              "columnMatch": "link",
+              "formatter": 5,
+              "formatOptions": {}
+            }
+          ],
+          "sortBy": [
+            {
+              "itemKey": "$gen_link_name_1",
+              "sortOrder": 1
+            }
+          ],
+          "labelSettings": [
+            {
+              "columnId": "subscriptionId",
+              "label": "Subscription"
+            },
+            {
+              "columnId": "name",
+              "label": "Compliance Standard"
+            },
+            {
+              "columnId": "passedControls",
+              "label": "Passed Controls"
+            },
+            {
+              "columnId": "failedControls",
+              "label": "Failed Controls"
+            },
+            {
+              "columnId": "unsupportedControls",
+              "label": "Unsupported Controls"
+            },
+            {
+              "columnId": "skippedControls",
+              "label": "Skipped Controls"
+            }
+          ]
+        },
+        "sortBy": [
+          {
+            "itemKey": "$gen_link_name_1",
+            "sortOrder": 1
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "SecurityOverview"
+      },
+      "showPin": true,
+      "name": "ascregcompliance"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "# Security Alerts"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "SecurityAlerts"
+      },
+      "name": "secalertshead"
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "title": "Security Alerts",
+        "items": [
+          {
+            "type": 9,
+            "content": {
+              "version": "KqlParameterItem/1.0",
+              "crossComponentResources": [
+                "{Workspaces}"
+              ],
+              "parameters": [
+                {
+                  "id": "8b3d4ee0-ed9f-4195-9c02-21d9b6a5b675",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "ProductName",
+                  "type": 2,
+                  "isRequired": true,
+                  "multiSelect": true,
+                  "quote": "'",
+                  "delimiter": ",",
+                  "query": "SecurityAlert \r\n| distinct ProductName",
+                  "crossComponentResources": [
+                    "{Workspaces}"
+                  ],
+                  "value": [
+                    "Azure Sentinel",
+                    "Azure Security Center"
+                  ],
+                  "typeSettings": {
+                    "additionalResourceOptions": [
+                      "value::all"
+                    ]
+                  },
+                  "timeContext": {
+                    "durationMs": 0
+                  },
+                  "timeContextFromParameter": "TimeRange",
+                  "queryType": 0,
+                  "resourceType": "microsoft.operationalinsights/workspaces"
+                }
+              ],
+              "style": "pills",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "name": "parameters - 0"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "SecurityAlert\r\n| where ProductName in ({ProductName})\r\n| summarize CountofAlerts = count() by AlertName, AlertSeverity, ProductName, Description, RemediationSteps\r\n| extend AdditionalInfo = strcat(\"Description: \", Description, \"<br>Remediation Steps: \", RemediationSteps)\r\n| sort by AlertSeverity desc",
+              "size": 0,
+              "timeContext": {
+                "durationMs": 0
+              },
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "crossComponentResources": [
+                "{Workspaces}"
+              ],
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "AlertName",
+                    "formatter": 1,
+                    "formatOptions": {
+                      "linkColumn": "AdditionalInfo",
+                      "linkTarget": "GenericDetails",
+                      "linkIsContextBlade": true
+                    }
+                  },
+                  {
+                    "columnMatch": "AlertSeverity",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "colors",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Low",
+                          "representation": "green",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Medium",
+                          "representation": "yellow",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "High",
+                          "representation": "redBright",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Informational",
+                          "representation": "blue",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "blue",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "ProductName",
+                    "formatter": 5,
+                    "formatOptions": {}
+                  },
+                  {
+                    "columnMatch": "Description",
+                    "formatter": 5,
+                    "formatOptions": {}
+                  },
+                  {
+                    "columnMatch": "RemediationSteps",
+                    "formatter": 5,
+                    "formatOptions": {}
+                  },
+                  {
+                    "columnMatch": "CountofAlerts",
+                    "formatter": 3,
+                    "formatOptions": {
+                      "palette": "greenRed"
+                    }
+                  },
+                  {
+                    "columnMatch": "AdditionalInfo",
+                    "formatter": 5,
+                    "formatOptions": {}
+                  }
+                ],
+                "hierarchySettings": {
+                  "treeType": 1,
+                  "groupBy": [
+                    "ProductName"
+                  ],
+                  "expandTopLevel": true
+                }
+              }
+            },
+            "name": "query - 1"
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "SecurityAlerts"
+      },
+      "name": "secalerts"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "SecurityAlert \r\n| summarize count() by bin(TimeGenerated, 1h), AlertSeverity, ProductName\r\n| order by TimeGenerated asc",
+        "size": 0,
+        "aggregation": 3,
+        "title": "Security Alerts Trend",
+        "noDataMessage": "No Security Alerts in Sentinel in this time range",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspaces}"
+        ],
+        "visualization": "linechart",
+        "chartSettings": {
+          "seriesLabelSettings": [
+            {
+              "seriesName": "Medium",
+              "color": "orange"
+            },
+            {
+              "seriesName": "Low",
+              "color": "yellow"
+            },
+            {
+              "seriesName": "High",
+              "color": "redBright"
+            },
+            {
+              "seriesName": "Informational",
+              "color": "gray"
+            }
+          ]
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "SecurityAlerts"
+      },
+      "name": "SecurityAlertTrend"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "securityresources\r\n| where type contains \"microsoft.security/securitystatusessummaries\"\r\n| extend \r\n\tHealthy = trim (' ', tostring(properties.resourceHealthSummary.healthy)),\r\n\tMedium = trim (' ', tostring(properties.resourceHealthSummary.medium)),\r\n\tHigh = trim (' ', tostring(properties.resourceHealthSummary.high)),\r\n\tNone = trim (' ', tostring(properties.resourceHealthSummary.none)),\r\n\tLow = trim (' ', tostring(properties.resourceHealthSummary.low)),\r\n\tResourceCount = trim (' ', tostring(properties.resourceCount))\r\n| extend Healthy = toint(iif(isnotempty(Healthy), Healthy, '0'))\r\n| extend Medium = toint(iif(isnotempty(Medium), Medium, '0'))\r\n| extend High = toint(iif(isnotempty(High), High, '0'))\r\n| extend None = toint(iif(isnotempty(None), None, '0'))\r\n| extend Low = toint(iif(isnotempty(Low), Low, '0'))\r\n| project subscriptionId, name, ResourceCount, Healthy, Medium, High, Low, None\r\n| order by name asc",
+        "size": 0,
+        "title": "Resource Security Health by Resource Type",
+        "queryType": 1,
+        "resourceType": "microsoft.resourcegraph/resources",
+        "crossComponentResources": [
+          "{Subscriptions}"
+        ],
+        "visualization": "table",
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "subscriptionId",
+              "formatter": 5,
+              "formatOptions": {}
+            },
+            {
+              "columnMatch": "name",
+              "formatter": 16,
+              "formatOptions": {
+                "linkTarget": "CellDetails",
+                "linkIsContextBlade": true,
+                "showIcon": true
+              }
+            },
+            {
+              "columnMatch": "ResourceCount",
+              "formatter": 2,
+              "formatOptions": {}
+            },
+            {
+              "columnMatch": "Healthy",
+              "formatter": 3,
+              "formatOptions": {
+                "palette": "green"
+              }
+            },
+            {
+              "columnMatch": "Medium",
+              "formatter": 3,
+              "formatOptions": {
+                "palette": "yellow"
+              }
+            },
+            {
+              "columnMatch": "High",
+              "formatter": 3,
+              "formatOptions": {
+                "palette": "red"
+              }
+            },
+            {
+              "columnMatch": "Low",
+              "formatter": 3,
+              "formatOptions": {
+                "palette": "blue"
+              }
+            }
+          ]
+        },
+        "tileSettings": {
+          "showBorder": false
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "SecurityAlerts"
+      },
+      "name": "securityresourcehealth"
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 9,
+            "content": {
+              "version": "KqlParameterItem/1.0",
+              "crossComponentResources": [
+                "{Workspaces}"
+              ],
+              "parameters": [
+                {
+                  "id": "82bf041e-5a4c-4237-abd6-6d6a0d8feb50",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "RecStatus",
+                  "type": 2,
+                  "isRequired": true,
+                  "multiSelect": true,
+                  "quote": "'",
+                  "delimiter": ",",
+                  "query": "SecurityRecommendation \r\n| distinct RecommendationState",
+                  "crossComponentResources": [
+                    "{Workspaces}"
+                  ],
+                  "value": [
+                    "Unhealthy"
+                  ],
+                  "typeSettings": {
+                    "additionalResourceOptions": [
+                      "value::all"
+                    ]
+                  },
+                  "timeContext": {
+                    "durationMs": 0
+                  },
+                  "timeContextFromParameter": "TimeRange",
+                  "queryType": 0,
+                  "resourceType": "microsoft.operationalinsights/workspaces",
+                  "label": "Recommendation State"
+                }
+              ],
+              "style": "pills",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            "name": "parameters - 0"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "SecurityRecommendation \r\n| where RecommendationState in ({RecStatus})\r\n| where RecommendationDisplayName != \"\"\r\n| extend Link = strcat(\"https://\", RecommendationLink)\r\n| parse AssessedResourceId with * \"/subscriptions/\" subscriptionId \"/\" *\r\n| summarize RecCount = count() by subscriptionId, RecommendationDisplayName, RecommendationState, Link\r\n| order by RecommendationState desc, RecCount desc",
+              "size": 0,
+              "title": "Security Recommendations",
+              "noDataMessage": "No Recommendations in the selected time period",
+              "timeContext": {
+                "durationMs": 0
+              },
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "crossComponentResources": [
+                "{Workspaces}"
+              ],
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "$gen_group",
+                    "formatter": 15,
+                    "formatOptions": {
+                      "linkTarget": "Resource"
+                    }
+                  },
+                  {
+                    "columnMatch": "subscriptionId",
+                    "formatter": 5,
+                    "formatOptions": {}
+                  },
+                  {
+                    "columnMatch": "RecommendationDisplayName",
+                    "formatter": 1,
+                    "formatOptions": {
+                      "linkColumn": "Link",
+                      "linkTarget": "Url"
+                    }
+                  },
+                  {
+                    "columnMatch": "RecommendationState",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "colors",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Unhealthy",
+                          "representation": "redBright",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "NotApplicable",
+                          "representation": "gray",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "contains",
+                          "thresholdValue": "Healthy",
+                          "representation": "green",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "blue",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "columnMatch": "Link",
+                    "formatter": 5,
+                    "formatOptions": {}
+                  },
+                  {
+                    "columnMatch": "RecCount",
+                    "formatter": 3,
+                    "formatOptions": {
+                      "palette": "greenRed"
+                    }
+                  }
+                ],
+                "hierarchySettings": {
+                  "treeType": 1,
+                  "groupBy": [
+                    "subscriptionId"
+                  ],
+                  "expandTopLevel": true
+                }
+              }
+            },
+            "name": "ascbaselinerecs",
+            "styleSettings": {
+              "showBorder": true
+            }
+          }
+        ]
+      },
+      "name": "ascbaselinerecsgrp"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "SecurityEvent\r\n| summarize Count=count() by Type, bin(TimeGenerated, 6h)\r\n| order by TimeGenerated asc",
+        "size": 0,
+        "title": "Security Event Anomalies",
+        "noDataMessage": "No Security Events in this time range in Azure Sentinel",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspaces}"
+        ],
+        "visualization": "linechart"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "SecurityAlerts"
+      },
+      "name": "SecurityEventTrend"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "SecurityDetection\r\n| summarize DetectCount = count() by Computer, AlertTitle, Description, Provider, RemediationSteps\r\n| extend AdditionalInfo = strcat(\"Description: \", Description, \"<br>Remediation Steps: \", RemediationSteps)",
+        "size": 0,
+        "title": "Threat Detections",
+        "noDataMessage": "No threats detected or ATP not configured",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspaces}"
+        ],
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "AlertTitle",
+              "formatter": 1,
+              "formatOptions": {
+                "linkColumn": "AdditionalInfo",
+                "linkTarget": "GenericDetails",
+                "linkIsContextBlade": true
+              }
+            },
+            {
+              "columnMatch": "Description",
+              "formatter": 5,
+              "formatOptions": {}
+            },
+            {
+              "columnMatch": "RemediationSteps",
+              "formatter": 5,
+              "formatOptions": {}
+            },
+            {
+              "columnMatch": "DetectCount",
+              "formatter": 3,
+              "formatOptions": {
+                "palette": "greenRed"
+              }
+            },
+            {
+              "columnMatch": "AdditionalInfo",
+              "formatter": 5,
+              "formatOptions": {}
+            }
+          ],
+          "labelSettings": [
+            {
+              "columnId": "Computer"
+            },
+            {
+              "columnId": "AlertTitle",
+              "label": "Alert Name"
+            },
+            {
+              "columnId": "Description"
+            },
+            {
+              "columnId": "RemediationSteps"
+            },
+            {
+              "columnId": "DetectCount",
+              "label": "Detections"
+            },
+            {
+              "columnId": "AdditionalInfo"
+            }
+          ]
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "SecurityAlerts"
+      },
+      "name": "ThreatDetection"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "<h2>Update and Protection Status</h2>"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "UpdateStatus"
+      },
+      "name": "text - 5"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "ProtectionStatus\r\n| summarize (TimeGenerated, TypeofProtection) = argmax(TimeGenerated, TypeofProtection) by Computer\r\n| summarize ComputersCount=count(Computer) by TypeofProtection\r\n| sort by ComputersCount desc",
+        "size": 0,
+        "title": "Antimalware Protection Status",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspaces}"
+        ],
+        "visualization": "piechart"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "UpdateStatus"
+      },
+      "customWidth": "50",
+      "name": "AntiMalwareProtection"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "ProtectionStatus\r\n| summarize (TimeGenerated, TypeofProtection) = argmax(TimeGenerated, TypeofProtection) by Computer\r\n| project Computer, TypeofProtection \r\n| sort by TypeofProtection desc, Computer asc",
+        "size": 0,
+        "showAnalytics": true,
+        "title": "Antimalware Protection Status",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "showExportToExcel": true,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspaces}"
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "UpdateStatus"
+      },
+      "customWidth": "50",
+      "name": "AntiMalwareProtectionDetail"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "Update \r\n| where OSType!=\"Linux\" and Optional==false \r\n| summarize hint.strategy=partitioned arg_max(TimeGenerated, *) by Computer,SourceComputerId,UpdateID\r\n| where UpdateState=~\"Needed\" and Approved!=false and (Classification == \"Security Updates\" or Classification == \"Critical Updates\" or Classification == \"Definition Updates\")\r\n| summarize Updates_Count=dcount(Computer) by Classification",
+        "size": 0,
+        "title": "Windows Update Compliance",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspaces}"
+        ],
+        "visualization": "piechart"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "UpdateStatus"
+      },
+      "customWidth": "50",
+      "name": "UpdateCompliance",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "Update \r\n| where OSType==\"Linux\"\r\n| summarize arg_max(TimeGenerated, *) by Computer, SourceComputerId, Product, ProductArch\r\n| where UpdateState=~\"Needed\" and (Classification == \"Security Updates\" or Classification == \"Critical Updates\" or Classification == \"Others\")\r\n| summarize Updates_Count=dcount(Computer) by Classification",
+        "size": 0,
+        "title": "Linux Computer Compliance",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspaces}"
+        ],
+        "visualization": "piechart"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "UpdateStatus"
+      },
+      "customWidth": "50",
+      "name": "uplinuxpie",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "Update\r\n| where OSType!=\"Linux\" and Optional==false\r\n| summarize hint.strategy=partitioned arg_max(TimeGenerated, *) by Computer,SourceComputerId,UpdateID\r\n| where UpdateState=~\"Needed\" and Approved!=false\r\n| summarize SecurityUpdates = countif(Classification == \"Security Updates\"), CriticalUpdates = countif(Classification == \"Critical Updates\"), DefinitionUpdates = countif(Classification == \"Definition Updates\") by Computer",
+        "size": 0,
+        "showAnalytics": true,
+        "title": "Windows Update Compliance Summary",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "showExportToExcel": true,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspaces}"
+        ],
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "SecurityUpdates",
+              "formatter": 3,
+              "formatOptions": {
+                "palette": "greenRed"
+              }
+            },
+            {
+              "columnMatch": "CriticalUpdates",
+              "formatter": 3,
+              "formatOptions": {
+                "palette": "greenRed"
+              }
+            },
+            {
+              "columnMatch": "DefinitionUpdates",
+              "formatter": 3,
+              "formatOptions": {
+                "palette": "greenRed"
+              }
+            }
+          ],
+          "labelSettings": [
+            {
+              "columnId": "Computer"
+            },
+            {
+              "columnId": "SecurityUpdates",
+              "label": "Security"
+            },
+            {
+              "columnId": "CriticalUpdates",
+              "label": "Critical"
+            },
+            {
+              "columnId": "DefinitionUpdates",
+              "label": "Definition"
+            }
+          ]
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "UpdateStatus"
+      },
+      "name": "UpdateComplianceDetail"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "Update\r\n| where OSType==\"Linux\"\r\n| summarize arg_max(TimeGenerated, *) by Computer, SourceComputerId, Product, ProductArch\r\n| where UpdateState=~\"Needed\"\r\n| summarize SecurityUpdates = countif(Classification == \"Security Updates\"), CriticalUpdates = countif(Classification == \"Critical Updates\"), OtherUpdates = countif(Classification == \"Others\") by Computer",
+        "size": 0,
+        "showAnalytics": true,
+        "title": "Linux Update Compliance Status",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "showExportToExcel": true,
+        "exportToExcelOptions": "all",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspaces}"
+        ],
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "SecurityUpdates",
+              "formatter": 3,
+              "formatOptions": {
+                "palette": "greenRed"
+              }
+            },
+            {
+              "columnMatch": "CriticalUpdates",
+              "formatter": 3,
+              "formatOptions": {
+                "palette": "greenRed"
+              }
+            },
+            {
+              "columnMatch": "OtherUpdates",
+              "formatter": 3,
+              "formatOptions": {
+                "palette": "greenRed"
+              }
+            }
+          ]
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "UpdateStatus"
+      },
+      "name": "umlinuxgrid",
+      "styleSettings": {
+        "showBorder": true
+      }
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "# Azure Activity Log"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "ActivityLog"
+      },
+      "name": "activitylogheader"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureActivity\r\n| where TimeGenerated > ago(7d)\r\n| summarize count() by Level",
+        "size": 4,
+        "title": "Activity Log Summary",
+        "noDataMessage": "No activity log entries found in the selected time range",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspaces}"
+        ],
+        "visualization": "tiles",
+        "tileSettings": {
+          "titleContent": {
+            "columnMatch": "Level",
+            "formatter": 1,
+            "formatOptions": {
+              "showIcon": true
+            }
+          },
+          "leftContent": {
+            "columnMatch": "count_",
+            "formatter": 12,
+            "formatOptions": {
+              "showIcon": true
+            },
+            "numberFormat": {
+              "unit": 17,
+              "options": {
+                "style": "decimal",
+                "useGrouping": false,
+                "maximumFractionDigits": 2,
+                "maximumSignificantDigits": 3
+              }
+            }
+          },
+          "rightContent": {
+            "columnMatch": "Level",
+            "formatter": 18,
+            "formatOptions": {
+              "showIcon": true,
+              "thresholdsOptions": "icons",
+              "thresholdsGrid": [
+                {
+                  "operator": "==",
+                  "thresholdValue": "Error",
+                  "representation": "3",
+                  "text": ""
+                },
+                {
+                  "operator": "==",
+                  "thresholdValue": "Warning",
+                  "representation": "2",
+                  "text": ""
+                },
+                {
+                  "operator": "==",
+                  "thresholdValue": "Critical",
+                  "representation": "4",
+                  "text": ""
+                },
+                {
+                  "operator": "Default",
+                  "thresholdValue": null,
+                  "representation": "1",
+                  "text": ""
+                }
+              ]
+            }
+          },
+          "showBorder": false
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "ActivityLog"
+      },
+      "showPin": true,
+      "name": "ActivityLogSummary"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureActivity\r\n| make-series Count = count() default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain}",
+        "size": 1,
+        "title": "Activity Log Activities over time",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspaces}"
+        ],
+        "visualization": "areachart"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "ActivityLog"
+      },
+      "showPin": true,
+      "name": "ActivityLogActivity"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureActivity\r\n| summarize deletions = countif(OperationName contains \"Delete\"), creations = countif(OperationName contains \"Create\"), updates = countif(OperationName contains \"Update\"), Activities = count(OperationName) by bin_at(TimeGenerated, 1h, now())",
+        "size": 0,
+        "title": "Activities over Time",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspaces}"
+        ],
+        "visualization": "linechart",
+        "chartSettings": {
+          "seriesLabelSettings": [
+            {
+              "seriesName": "deletions",
+              "label": "Deletions",
+              "color": "redBright"
+            },
+            {
+              "seriesName": "creations",
+              "label": "Creations",
+              "color": "turquoise"
+            },
+            {
+              "seriesName": "updates",
+              "label": "Updates",
+              "color": "orange"
+            },
+            {
+              "seriesName": "Activities",
+              "label": "Activities",
+              "color": "purple"
+            }
+          ]
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "ActivityLog"
+      },
+      "name": "activitylogovertime"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureActivity\r\n| summarize dcount(ResourceProvider)",
+        "size": 1,
+        "title": "Resource providers producing activity logs",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspaces}"
+        ],
+        "visualization": "graph",
+        "tileSettings": {
+          "titleContent": {
+            "formatOptions": {
+              "showIcon": true
+            }
+          },
+          "leftContent": {
+            "columnMatch": "dcount_ResourceProvider",
+            "formatter": 12,
+            "formatOptions": {
+              "palette": "auto",
+              "showIcon": true
+            }
+          },
+          "showBorder": false
+        },
+        "graphSettings": {
+          "type": 2,
+          "topContent": {
+            "formatOptions": {
+              "showIcon": true
+            }
+          },
+          "centerContent": {
+            "columnMatch": "dcount_ResourceProvider",
+            "formatter": 12,
+            "formatOptions": {
+              "showIcon": true
+            }
+          },
+          "nodeIdField": "dcount_ResourceProvider",
+          "nodeSize": null,
+          "staticNodeSize": 100,
+          "colorSettings": null,
+          "hivesMargin": 5
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "ActivityLog"
+      },
+      "customWidth": "30",
+      "showPin": true,
+      "name": "activitylogcountresourceproviders"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureActivity\r\n| extend ResourceProviderName = iif(ResourceProvider == \"\", \"No Resource Provider\", ResourceProvider)\r\n| summarize AggregatedValue = count() by ResourceProviderName\r\n| order by AggregatedValue desc nulls last \r\n| take 10",
+        "size": 0,
+        "title": "Top 10 Resource Providers",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "showExportToExcel": true,
+        "exportToExcelOptions": "all",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspaces}"
+        ],
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "AggregatedValue",
+              "formatter": 4,
+              "formatOptions": {
+                "showIcon": true
+              }
+            }
+          ],
+          "labelSettings": [
+            {
+              "columnId": "ResourceProviderName",
+              "label": "Resource Provider"
+            },
+            {
+              "columnId": "AggregatedValue",
+              "label": "Count"
+            }
+          ]
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "ActivityLog"
+      },
+      "customWidth": "60",
+      "name": "query - 21"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureActivity  \r\n| where ActivityStatus == \"Failed\"\r\n| extend action_ = tostring(parse_json(Authorization).action) \r\n| extend code_ = tostring(parse_json(tostring(parse_json(tostring(parse_json(Properties).statusMessage)).error)).code) \r\n| extend message_ = tostring(parse_json(tostring(parse_json(tostring(parse_json(Properties).statusMessage)).error)).message) \r\n| project TimeGenerated, CallerIpAddress, CategoryValue, action_, code_, message_, OperationNameValue, ResourceProviderValue, ActivitySubstatus ",
+        "size": 0,
+        "title": "Failures in Activity Log",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "showExportToExcel": true,
+        "exportToExcelOptions": "all",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspaces}"
+        ],
+        "gridSettings": {
+          "filter": true
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "ActivityLog"
+      },
+      "name": "query - 24"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "# Azure Keyvault"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "KeyVault"
+      },
+      "name": "keyvaultheader"
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 9,
+            "content": {
+              "version": "KqlParameterItem/1.0",
+              "crossComponentResources": [
+                "{Subscriptions}"
+              ],
+              "parameters": [
+                {
+                  "id": "e0c9cdc8-84a1-4907-a184-b02069333020",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "KeyVault",
+                  "type": 7,
+                  "isRequired": true,
+                  "multiSelect": true,
+                  "quote": "'",
+                  "delimiter": ",",
+                  "query": "where type =~ 'microsoft.keyvault/vaults'\r\n| project name",
+                  "crossComponentResources": [
+                    "{Subscriptions}"
+                  ],
+                  "value": [
+                    "value::all"
+                  ],
+                  "isHiddenWhenLocked": true,
+                  "typeSettings": {
+                    "additionalResourceOptions": [
+                      "value::all"
+                    ]
+                  },
+                  "timeContext": {
+                    "durationMs": 0
+                  },
+                  "timeContextFromParameter": "TimeRange",
+                  "queryType": 1,
+                  "resourceType": "microsoft.resourcegraph/resources"
+                }
+              ],
+              "style": "pills",
+              "queryType": 1,
+              "resourceType": "microsoft.resourcegraph/resources"
+            },
+            "name": "parameters - 0"
+          },
+          {
+            "type": 10,
+            "content": {
+              "chartId": "workbookf678ad6b-7bfe-4512-a279-9ad508f7d717",
+              "version": "MetricsItem/2.0",
+              "size": 0,
+              "chartType": 0,
+              "metricScope": 0,
+              "resourceIds": [
+                "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765/resourceGroups/Northwind-Migration/providers/Microsoft.KeyVault/vaults/SmartHotelAppl63f2kv",
+                "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765/resourceGroups/NW-WP-RG/providers/Microsoft.KeyVault/vaults/NW-KV-VB",
+                "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765/resourceGroups/ftademo-poc-rg/providers/Microsoft.KeyVault/vaults/nw-kv"
+              ],
+              "timeContext": {
+                "durationMs": 0
+              },
+              "timeContextFromParameter": "TimeRange",
+              "resourceType": "microsoft.keyvault/vaults",
+              "metrics": [
+                {
+                  "namespace": "microsoft.keyvault/vaults",
+                  "metric": "microsoft.keyvault/vaults--ServiceApiHit",
+                  "aggregation": 1
+                },
+                {
+                  "namespace": "microsoft.keyvault/vaults",
+                  "metric": "microsoft.keyvault/vaults--ServiceApiResult",
+                  "aggregation": 1,
+                  "filters": [
+                    {
+                      "key": "StatusCodeClass",
+                      "operator": 0,
+                      "values": [
+                        "2xx"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "namespace": "microsoft.keyvault/vaults",
+                  "metric": "microsoft.keyvault/vaults--ServiceApiResult",
+                  "aggregation": 1,
+                  "columnName": "Authentication",
+                  "filters": [
+                    {
+                      "key": "StatusCode",
+                      "operator": 0,
+                      "values": [
+                        "200"
+                      ]
+                    },
+                    {
+                      "key": "StatusCode",
+                      "operator": 0,
+                      "values": []
+                    }
+                  ]
+                },
+                {
+                  "namespace": "microsoft.keyvault/vaults",
+                  "metric": "microsoft.keyvault/vaults--ServiceApiResult",
+                  "aggregation": 1,
+                  "columnName": "Throttling",
+                  "filters": [
+                    {
+                      "key": "StatusCode",
+                      "operator": 0,
+                      "values": []
+                    }
+                  ]
+                },
+                {
+                  "namespace": "microsoft.keyvault/vaults",
+                  "metric": "microsoft.keyvault/vaults--ServiceApiResult",
+                  "aggregation": 1,
+                  "columnName": "Failures",
+                  "filters": [
+                    {
+                      "key": "StatusCodeClass",
+                      "operator": 1,
+                      "values": [
+                        "2xx"
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "gridFormatType": 2,
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "$gen_group",
+                    "formatter": 13,
+                    "formatOptions": {
+                      "linkTarget": "Resource",
+                      "subTarget": "Insights",
+                      "showIcon": true
+                    }
+                  },
+                  {
+                    "columnMatch": "Subscription",
+                    "formatter": 5,
+                    "formatOptions": {}
+                  },
+                  {
+                    "columnMatch": "Name",
+                    "formatter": 5,
+                    "formatOptions": {}
+                  },
+                  {
+                    "columnMatch": "Segment",
+                    "formatter": 5,
+                    "formatOptions": {}
+                  },
+                  {
+                    "columnMatch": "microsoft.keyvault/vaults--ServiceApiHit",
+                    "formatter": 1,
+                    "formatOptions": {},
+                    "numberFormat": {
+                      "unit": 0,
+                      "options": {
+                        "style": "decimal"
+                      }
+                    }
+                  },
+                  {
+                    "columnMatch": "microsoft.keyvault/vaults--ServiceApiHit Timeline",
+                    "formatter": 21,
+                    "formatOptions": {
+                      "palette": "blue"
+                    }
+                  },
+                  {
+                    "columnMatch": "microsoft.keyvault/vaults--ServiceApiResult",
+                    "formatter": 1,
+                    "formatOptions": {},
+                    "numberFormat": {
+                      "unit": 0,
+                      "options": {
+                        "style": "decimal"
+                      }
+                    }
+                  },
+                  {
+                    "columnMatch": "microsoft.keyvault/vaults--ServiceApiResult Timeline",
+                    "formatter": 5,
+                    "formatOptions": {}
+                  },
+                  {
+                    "columnMatch": "Authentication",
+                    "formatter": 1,
+                    "formatOptions": {},
+                    "numberFormat": {
+                      "unit": 17,
+                      "options": {
+                        "style": "decimal"
+                      },
+                      "emptyValCustomText": "-"
+                    }
+                  },
+                  {
+                    "columnMatch": "Authentication Timeline",
+                    "formatter": 5,
+                    "formatOptions": {}
+                  },
+                  {
+                    "columnMatch": "Throttling",
+                    "formatter": 1,
+                    "formatOptions": {},
+                    "numberFormat": {
+                      "unit": 17,
+                      "options": {
+                        "style": "decimal"
+                      },
+                      "emptyValCustomText": "-"
+                    }
+                  },
+                  {
+                    "columnMatch": "Throttling Timeline",
+                    "formatter": 5,
+                    "formatOptions": {}
+                  },
+                  {
+                    "columnMatch": "Failures",
+                    "formatter": 0,
+                    "formatOptions": {},
+                    "numberFormat": {
+                      "unit": 17,
+                      "options": {
+                        "style": "decimal",
+                        "useGrouping": false
+                      },
+                      "emptyValCustomText": "-"
+                    }
+                  },
+                  {
+                    "columnMatch": "Failures Timeline",
+                    "formatter": 5,
+                    "formatOptions": {}
+                  }
+                ],
+                "rowLimit": 10000,
+                "hierarchySettings": {
+                  "treeType": 1,
+                  "groupBy": [
+                    "Subscription"
+                  ],
+                  "expandTopLevel": true,
+                  "finalBy": "Name"
+                },
+                "labelSettings": [
+                  {
+                    "columnId": "microsoft.keyvault/vaults--ServiceApiHit",
+                    "label": "Total Service Api Hits (Sum)"
+                  },
+                  {
+                    "columnId": "microsoft.keyvault/vaults--ServiceApiHit Timeline",
+                    "label": "Total Service Api Hits (Sum) Timeline"
+                  },
+                  {
+                    "columnId": "microsoft.keyvault/vaults--ServiceApiResult",
+                    "label": "Total Service Api Results (Sum)"
+                  },
+                  {
+                    "columnId": "microsoft.keyvault/vaults--ServiceApiResult Timeline",
+                    "label": "Total Service Api Results (Sum) Timeline"
+                  }
+                ]
+              },
+              "sortBy": []
+            },
+            "name": "metric - 1"
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "KeyVault"
+      },
+      "name": "group - 32"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureDiagnostics\r\n| where ResourceProvider ==\"MICROSOFT.KEYVAULT\" \r\n| summarize count() by bin(TimeGenerated, 1h), OperationName // Aggregate by hour\r\n| render timechart",
+        "size": 0,
+        "title": "Keyvault Activity over time",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspaces}"
+        ],
+        "chartSettings": {
+          "seriesLabelSettings": [
+            {
+              "seriesName": "VaultGet",
+              "label": "Vault Activities"
+            }
+          ]
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "KeyVault"
+      },
+      "name": "query - 22"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureDiagnostics\r\n| where ResourceProvider ==\"MICROSOFT.KEYVAULT\"\r\n| summarize count() by CallerIPAddress\r\n| order by count_ desc",
+        "size": 0,
+        "showAnalytics": true,
+        "title": "Calls to Keyvault",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "showExportToExcel": true,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspaces}"
+        ],
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "count_",
+              "formatter": 4,
+              "formatOptions": {
+                "showIcon": true
+              }
+            }
+          ],
+          "labelSettings": [
+            {
+              "columnId": "CallerIPAddress"
+            },
+            {
+              "columnId": "count_",
+              "label": "Calls"
+            }
+          ]
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "KeyVault"
+      },
+      "name": "keyvaultcalls"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureDiagnostics\r\n| where ResourceProvider ==\"MICROSOFT.KEYVAULT\" \r\n| where httpStatusCode_d >= 300 and not(OperationName == \"Authentication\" and httpStatusCode_d == 401)\r\n| summarize count() by requestUri_s, ResultSignature",
+        "size": 0,
+        "showAnalytics": true,
+        "title": "Failed Keyvault requests by status code",
+        "noDataMessage": "No failures detected in the selected time range",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "showExportToExcel": true,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspaces}"
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "KeyVault"
+      },
+      "name": "keyvaultfailures"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "# Application Gateway"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "AppGateway"
+      },
+      "name": "appgw"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureDiagnostics\r\n| where ResourceType == \"APPLICATIONGATEWAYS\" and OperationName == \"ApplicationGatewayAccess\" and httpStatus_d > 399\r\n| summarize AggregatedValue = count() by bin(TimeGenerated, 1h), instanceId_s",
+        "size": 0,
+        "title": "Application Gateway Failed Requests per hour",
+        "noDataMessage": "No failures detected in the selected time range",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspaces}"
+        ],
+        "visualization": "linechart"
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "AppGateway"
+      },
+      "name": "appgwfailures"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureDiagnostics\r\n| where ResourceType == \"APPLICATIONGATEWAYS\" and OperationName == \"ApplicationGatewayAccess\" and httpStatus_d > 399\r\n| extend UserAgent = iif(userAgent_s == \"\", \"No UserAgent\", userAgent_s)\r\n| summarize AggregatedValue = count() by UserAgent, instanceId_s\r\n| sort by AggregatedValue desc",
+        "size": 0,
+        "showAnalytics": true,
+        "title": "Application Gateway Errors by User Agent",
+        "noDataMessage": "No failures detected in the specified time range",
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "showExportToExcel": true,
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspaces}"
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "AppGateway"
+      },
+      "name": "appgwfailuresbyuseragent"
+    }
+  ],
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}
