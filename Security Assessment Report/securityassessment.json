@@ -30,7 +30,7 @@
             ],
             "value": [
               "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765",
-              "/subscriptions/b34fa96b-796e-4888-8764-bc27825098a7"
+              "/subscriptions/5733bcb3-7fde-4caf-8629-41dc15e3b352"
             ],
             "typeSettings": {
               "additionalResourceOptions": [
@@ -53,7 +53,8 @@
               "{Subscriptions}"
             ],
             "value": [
-              "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765/resourceGroups/northwind-vb/providers/Microsoft.OperationalInsights/workspaces/NW-LA-Demo"
+              "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765/resourceGroups/northwind-vb/providers/Microsoft.OperationalInsights/workspaces/NW-LA-Demo",
+              "/subscriptions/5733bcb3-7fde-4caf-8629-41dc15e3b352/resourceGroups/CH-OpsRG-Pri/providers/Microsoft.OperationalInsights/workspaces/CH-LA"
             ],
             "typeSettings": {
               "additionalResourceOptions": [
@@ -69,7 +70,7 @@
             "name": "TimeRange",
             "type": 4,
             "value": {
-              "durationMs": 1209600000
+              "durationMs": 172800000
             },
             "typeSettings": {
               "selectableValues": [
@@ -609,7 +610,6 @@
                     "{Workspaces}"
                   ],
                   "value": [
-                    "Azure Sentinel",
                     "Azure Security Center"
                   ],
                   "typeSettings": {
@@ -894,7 +894,7 @@
                     "{Workspaces}"
                   ],
                   "value": [
-                    "Unhealthy"
+                    "value::all"
                   ],
                   "typeSettings": {
                     "additionalResourceOptions": [
@@ -1016,6 +1016,11 @@
             }
           }
         ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "selectedTab",
+        "comparison": "isEqualTo",
+        "value": "SecurityAlerts"
       },
       "name": "ascbaselinerecsgrp"
     },
