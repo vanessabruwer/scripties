@@ -29,8 +29,8 @@
               "value::selected"
             ],
             "value": [
-              "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765",
-              "/subscriptions/5733bcb3-7fde-4caf-8629-41dc15e3b352"
+              "/subscriptions/5733bcb3-7fde-4caf-8629-41dc15e3b352",
+              "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765"
             ],
             "typeSettings": {
               "additionalResourceOptions": [
@@ -53,7 +53,6 @@
               "{Subscriptions}"
             ],
             "value": [
-              "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765/resourceGroups/northwind-vb/providers/Microsoft.OperationalInsights/workspaces/NW-LA-Demo",
               "/subscriptions/5733bcb3-7fde-4caf-8629-41dc15e3b352/resourceGroups/CH-OpsRG-Pri/providers/Microsoft.OperationalInsights/workspaces/CH-LA"
             ],
             "typeSettings": {
@@ -70,7 +69,7 @@
             "name": "TimeRange",
             "type": 4,
             "value": {
-              "durationMs": 172800000
+              "durationMs": 604800000
             },
             "typeSettings": {
               "selectableValues": [
@@ -125,7 +124,7 @@
     {
       "type": 1,
       "content": {
-        "json": "This report relies on assessment data from Azure Security Center with ATP integration enabled, Azure Sentinel, Azure Policy and Azure Monitor. The Azure Monitor output relies on the following solutions:\r\n\r\n* Update Management (In Azure Automation)\r\n* Anti-Malware assessment\r\n* Keyvault Analytics\r\n* Application Gateway Analytics"
+        "json": "This report relies on assessment data from Azure Security Center with ATP integration and continuous export for all settings enabled, Azure Sentinel, Azure Policy and Azure Monitor. The Azure Monitor output relies on the following solutions:\r\n\r\n* Update Management (In Azure Automation)\r\n* Anti-Malware assessment\r\n* Keyvault Analytics\r\n* Application Gateway Analytics"
       },
       "conditionalVisibility": {
         "parameterName": "Workspaces",
@@ -273,7 +272,7 @@
             },
             {
               "columnId": "sScore",
-              "label": "~Secure Score",
+              "label": "Health Score",
               "comment": "This is an estimation of your secure score (may vary by a %)"
             }
           ]
@@ -388,6 +387,8 @@
         "query": "SecurityRecommendation\r\n| where RecommendationState == \"Unhealthy\"\r\n| summarize count() by RecommendationSeverity, RecommendationState\r\n| extend SortOrder = iff(RecommendationSeverity==\"High\", 3, iff(RecommendationSeverity==\"Medium\", 2, iif(RecommendationSeverity==\"Low\", 1, 0)))\r\n| order by SortOrder desc ",
         "size": 4,
         "title": "Security Recommendation Summary",
+        "noDataMessage": "No Recommendations detected. Please ensure that you have enabled continuous export of your recommendations in Azure Security Center",
+        "noDataMessageStyle": 4,
         "timeContext": {
           "durationMs": 0
         },
@@ -636,7 +637,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "SecurityAlert\r\n| where ProductName in ({ProductName})\r\n| summarize CountofAlerts = count() by AlertName, AlertSeverity, ProductName, Description, RemediationSteps\r\n| extend AdditionalInfo = strcat(\"Description: \", Description, \"<br>Remediation Steps: \", RemediationSteps)\r\n| sort by AlertSeverity desc",
+              "query": "SecurityAlert\r\n| where ProductName in ({ProductName})\r\n| summarize CountofAlerts = count() by AlertName, AlertSeverity, ProductName, Description, RemediationSteps\r\n//| extend AdditionalInfo = strcat(\"Description: \", Description, \"<br>Remediation Steps: \", RemediationSteps)\r\n| sort by AlertSeverity desc",
               "size": 0,
               "showAnalytics": true,
               "timeContext": {
@@ -653,11 +654,11 @@
                 "formatters": [
                   {
                     "columnMatch": "AlertName",
-                    "formatter": 1,
+                    "formatter": 7,
                     "formatOptions": {
-                      "linkColumn": "AdditionalInfo",
                       "linkTarget": "GenericDetails",
-                      "linkIsContextBlade": true
+                      "linkIsContextBlade": true,
+                      "workbookContext": null
                     }
                   },
                   {
@@ -724,7 +725,11 @@
                   {
                     "columnMatch": "AdditionalInfo",
                     "formatter": 5,
-                    "formatOptions": {}
+                    "formatOptions": {
+                      "linkTarget": "WorkbookTemplate",
+                      "linkIsContextBlade": false,
+                      "workbookContext": null
+                    }
                   }
                 ],
                 "hierarchySettings": {
@@ -1062,7 +1067,7 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "SecurityDetection\r\n| summarize DetectCount = count() by Computer, AlertTitle, Description, Provider, RemediationSteps\r\n| extend AdditionalInfo = strcat(\"Description: \", Description, \"<br>Remediation Steps: \", RemediationSteps)",
+        "query": "SecurityDetection\r\n| summarize DetectCount = count() by Computer, AlertTitle, Description, Provider, RemediationSteps\r\n//| extend AdditionalInfo = strcat(\"Description: \", Description, \"<br>Remediation Steps: \", RemediationSteps)",
         "size": 0,
         "showAnalytics": true,
         "title": "Threat Detections",
@@ -1084,7 +1089,7 @@
               "columnMatch": "AlertTitle",
               "formatter": 1,
               "formatOptions": {
-                "linkColumn": "AdditionalInfo",
+                "linkColumn": "AlertTitle",
                 "linkTarget": "GenericDetails",
                 "linkIsContextBlade": true
               }
@@ -1129,9 +1134,6 @@
             {
               "columnId": "DetectCount",
               "label": "Detections"
-            },
-            {
-              "columnId": "AdditionalInfo"
             }
           ]
         }
@@ -1729,6 +1731,7 @@
       "content": {
         "version": "NotebookGroup/1.0",
         "groupType": "editable",
+        "loadType": "always",
         "items": [
           {
             "type": 9,
@@ -1739,6 +1742,32 @@
               ],
               "parameters": [
                 {
+                  "id": "1f4c2b26-edb8-49ae-94d1-80b9b310c6a3",
+                  "version": "KqlParameterItem/1.0",
+                  "name": "KeyvaultType",
+                  "type": 7,
+                  "isRequired": true,
+                  "multiSelect": true,
+                  "quote": "'",
+                  "delimiter": ",",
+                  "query": "resources\r\n| where type == \"microsoft.keyvault/vaults\"\r\n| summarize Count = count() by type\r\n| order by Count desc\r\n| extend Rank = row_number()\r\n| project type, selected = Rank == 1",
+                  "crossComponentResources": [
+                    "{Subscriptions}"
+                  ],
+                  "isHiddenWhenLocked": true,
+                  "typeSettings": {
+                    "additionalResourceOptions": [
+                      "value::all"
+                    ]
+                  },
+                  "timeContext": {
+                    "durationMs": 0
+                  },
+                  "timeContextFromParameter": "TimeRange",
+                  "queryType": 1,
+                  "resourceType": "microsoft.resourcegraph/resources"
+                },
+                {
                   "id": "e0c9cdc8-84a1-4907-a184-b02069333020",
                   "version": "KqlParameterItem/1.0",
                   "name": "KeyVault",
@@ -1747,14 +1776,10 @@
                   "multiSelect": true,
                   "quote": "'",
                   "delimiter": ",",
-                  "query": "where type =~ 'microsoft.keyvault/vaults'\r\n| project name",
+                  "query": "where type =~ 'microsoft.keyvault/vaults'\r\n| summarize Count = count() by id\r\n| project value = id, label = id, selected = Count >= 0",
                   "crossComponentResources": [
                     "{Subscriptions}"
                   ],
-                  "value": [
-                    "value::all"
-                  ],
-                  "isHiddenWhenLocked": true,
                   "typeSettings": {
                     "additionalResourceOptions": [
                       "value::all"
@@ -1783,15 +1808,14 @@
               "chartType": 0,
               "metricScope": 0,
               "resourceIds": [
-                "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765/resourceGroups/Northwind-Migration/providers/Microsoft.KeyVault/vaults/SmartHotelAppl63f2kv",
-                "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765/resourceGroups/NW-WP-RG/providers/Microsoft.KeyVault/vaults/NW-KV-VB",
-                "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765/resourceGroups/ftademo-poc-rg/providers/Microsoft.KeyVault/vaults/nw-kv"
+                "{KeyVault}"
               ],
               "timeContext": {
                 "durationMs": 0
               },
               "timeContextFromParameter": "TimeRange",
               "resourceType": "microsoft.keyvault/vaults",
+              "resourceParameter": "KeyVault",
               "metrics": [
                 {
                   "namespace": "microsoft.keyvault/vaults",
@@ -1859,6 +1883,15 @@
                       ]
                     }
                   ]
+                },
+                {
+                  "namespace": "microsoft.keyvault/vaults",
+                  "metric": "microsoft.keyvault/vaults--SaturationShoebox",
+                  "aggregation": 4,
+                  "splitBy": "ActivityName",
+                  "splitBySortOrder": 2,
+                  "splitByLimit": 5,
+                  "columnName": "Saturation"
                 }
               ],
               "gridFormatType": 2,
@@ -1971,6 +2004,44 @@
                   },
                   {
                     "columnMatch": "Failures Timeline",
+                    "formatter": 5,
+                    "formatOptions": {}
+                  },
+                  {
+                    "columnMatch": "Saturation",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "icons",
+                      "thresholdsGrid": [
+                        {
+                          "operator": ">",
+                          "thresholdValue": "75",
+                          "representation": "2",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "is Empty",
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "success",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    },
+                    "numberFormat": {
+                      "unit": 1,
+                      "options": {
+                        "style": "decimal",
+                        "useGrouping": false
+                      }
+                    }
+                  },
+                  {
+                    "columnMatch": "Saturation Timeline",
                     "formatter": 5,
                     "formatOptions": {}
                   }
