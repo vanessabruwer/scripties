@@ -21,3 +21,8 @@ This workbook visualises the health and performance of WVD (Spring Release). To 
 * `Process(*)\IO Write Operations/sec`
 * `Process(*)\Thread Count`
 * `Process(*)\Working Set`
+
+
+To use this workbook, create a new workbook in Azure Monitor, and copy the code from this sample into the code area for the workbook, replacing the sample code in this workbook:
+
+<img src="workbook-code.png">
