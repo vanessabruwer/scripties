@@ -2,9 +2,9 @@
 
 This workbook visualises the health and performance of WVD (Spring Release). To be able to use this workbook, you will need to enable the following:
 
-1. VMInsights on the hosts
-2. WVD Diagnostic Logs
-3. Collection of the following performance counters in your Log Analytics workspace:
+1. [VMInsights](https://docs.microsoft.com/en-us/azure/azure-monitor/insights/vminsights-enable-overview) on the hosts
+2. [WVD Diagnostic Logs](https://docs.microsoft.com/en-us/azure/virtual-desktop/diagnostics-log-analytics#push-diagnostics-data-to-your-workspace)
+3. Collection of the following [performance counters](https://docs.microsoft.com/en-us/azure/azure-monitor/platform/data-sources-performance-counters) in your Log Analytics workspace:
 
 * `Terminal Services Session(*)\% Processor Time`
 * `Terminal Services(*)\Active Sessions`
