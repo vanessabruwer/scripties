@@ -12,9 +12,6 @@
       "type": 9,
       "content": {
         "version": "KqlParameterItem/1.0",
-        "crossComponentResources": [
-          "{Subscription}"
-        ],
         "parameters": [
           {
             "id": "b859a03f-2283-43dd-8536-42714bbfced6",
@@ -33,6 +30,23 @@
               "additionalResourceOptions": [
                 "value::all"
               ]
+            },
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources"
+          },
+          {
+            "id": "bab77e5f-3597-4d1f-beb4-878b8b1aab3e",
+            "version": "KqlParameterItem/1.0",
+            "name": "SubscriptionID",
+            "type": 6,
+            "isRequired": true,
+            "query": "resourcecontainers\r\n | where type == \"microsoft.resources/subscriptions\"\r\n | summarize Count = count() by subscriptionId\r\n | project Label = subscriptionId, Id = subscriptionId, Selected = Count >= 0",
+            "crossComponentResources": [
+              "{Subscription}"
+            ],
+            "isHiddenWhenLocked": true,
+            "typeSettings": {
+              "additionalResourceOptions": []
             },
             "queryType": 1,
             "resourceType": "microsoft.resourcegraph/resources"
@@ -83,10 +97,11 @@
             "name": "HostPool",
             "type": 5,
             "isRequired": true,
-            "query": "resources\r\n| where type contains  \"desktopvirtualization\" and resourceGroup contains ('{ResourceGroup}')\r\n| parse type with * \"microsoft.desktopvirtualization/\" TypeName\r\n| where TypeName == \"hostpools\"\r\n| summarize Count = count() by name, id\r\n| project Label = name, Id = id, Selected = Count >= 1",
+            "query": "resources\r\n| where type == \"microsoft.desktopvirtualization/hostpools\"\r\n| summarize Count = count() by name, id\r\n| project Label = name, Id = id, Selected = Count >= 1",
             "crossComponentResources": [
               "{Subscription}"
             ],
+            "value": "thovuy-pool",
             "typeSettings": {
               "additionalResourceOptions": []
             },
@@ -106,10 +121,7 @@
             "multiSelect": true,
             "quote": "'",
             "delimiter": ",",
-            "query": "resources\r\n| where type == \"microsoft.compute/virtualmachines\" and resourceGroup == \"{ResourceGroup}\"\r\n| extend  Publisher = properties.storageProfile.imageReference.publisher\r\n| where Publisher == \"MicrosoftWindowsDesktop\"\r\n| project name\r\n| order by name asc",
-            "crossComponentResources": [
-              "{Subscription}"
-            ],
+            "query": "{\"version\":\"ARMEndpoint/1.0\",\"data\":null,\"headers\":[],\"method\":\"GET\",\"path\":\"{SubscriptionID}/resourcegroups/{ResourceGroup}/providers/Microsoft.DesktopVirtualization/hostpools/{HostPool}/sessionhosts?api-version=2019-01-23-preview\",\"urlParams\":[],\"batchDisabled\":false,\"transformers\":[{\"type\":\"jsonpath\",\"settings\":{\"tablePath\":\"$.value\",\"columns\":[{\"path\":\"$.name\",\"columnid\":\"Name\"}]}}]}",
             "value": [
               "value::all"
             ],
@@ -122,8 +134,7 @@
               "durationMs": 0
             },
             "timeContextFromParameter": "TimeRange",
-            "queryType": 1,
-            "resourceType": "microsoft.resourcegraph/resources"
+            "queryType": 12
           },
           {
             "id": "04a8ead2-1fb2-4666-a7b0-6d92e3c29b46",
@@ -169,28 +180,10 @@
             "value": {
               "durationMs": 1209600000
             }
-          },
-          {
-            "id": "bab77e5f-3597-4d1f-beb4-878b8b1aab3e",
-            "version": "KqlParameterItem/1.0",
-            "name": "SubscriptionID",
-            "type": 6,
-            "isRequired": true,
-            "query": "resourcecontainers\r\n | where type == \"microsoft.resources/subscriptions\"\r\n | summarize Count = count() by subscriptionId\r\n | project Label = subscriptionId, Id = subscriptionId, Selected = Count >= 0",
-            "crossComponentResources": [
-              "{Subscription}"
-            ],
-            "isHiddenWhenLocked": true,
-            "typeSettings": {
-              "additionalResourceOptions": []
-            },
-            "queryType": 1,
-            "resourceType": "microsoft.resourcegraph/resources"
           }
         ],
         "style": "pills",
-        "queryType": 1,
-        "resourceType": "microsoft.resourcegraph/resources"
+        "queryType": 12
       },
       "name": "parameters - 2"
     },
@@ -275,9 +268,9 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "resources\r\n| where type contains  \"desktopvirtualization\"\r\n| where resourceGroup == \"{ResourceGroup}\" \r\n| parse type with * \"microsoft.desktopvirtualization/\" TypeName\r\n| summarize Resources=count() by TypeName\r\n| order by Resources desc",
+              "query": "resources\r\n| where type contains  \"desktopvirtualization\"\r\n| parse type with * \"microsoft.desktopvirtualization/\" TypeName\r\n| summarize Resources=count() by TypeName\r\n| order by Resources desc",
               "size": 1,
-              "title": "WVD Resources in {ResourceGroup}",
+              "title": "WVD Resources",
               "noDataMessage": "No WVD resources detected. Please select the subscription that contains your WVD resources",
               "noDataMessageStyle": 4,
               "queryType": 1,
@@ -319,7 +312,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "WVDConnections\r\n| parse SessionHostName with ComputerName \".\" *\r\n| where ComputerName in ({WVDHosts})\r\n|sort by TimeGenerated asc, CorrelationId\r\n|summarize Sessions = dcount(CorrelationId) by bin(TimeGenerated, 1d)",
+              "query": "let WVDHosts = dynamic([{WVDHosts}]);\r\nWVDConnections\r\n| extend HostPool = '{HostPool}'\r\n| extend HostPool = strcat(HostPool, \"/\")\r\n| extend Computername = strcat(HostPool, SessionHostName)\r\n| where Computername in (WVDHosts)\r\n|sort by TimeGenerated asc, CorrelationId\r\n|summarize Sessions = dcount(CorrelationId) by bin(TimeGenerated, 1d)",
               "size": 1,
               "title": "Daily Connections - Rolling 7 days",
               "noDataMessage": "No sessions detected in the last 7 days.",
@@ -396,9 +389,8 @@
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "Heartbeat\r\n| extend FullName = strcat(('{HostPool}'),\"/\",Computer)\r\n| extend HostPool = '{HostPool}'\r\n| join (Perf\r\n| where (ObjectName == \"Terminal Services\" and CounterName == \"Active Sessions\")\r\n| make-series TSActTrend = avg(CounterValue) default=0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by ObjectName, Computer | project TSActTrend, Computer) on Computer\r\n| join (Perf\r\n| where (ObjectName == \"Memory\" and CounterName == \"% Committed Bytes In Use\")\r\n| make-series MemTrend = avg(CounterValue) default=0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by ObjectName, Computer | project MemTrend, Computer) on Computer\r\n| join (Perf\r\n| where (ObjectName == \"Processor\" and CounterName == \"% Processor Time\")\r\n| make-series CPUTrend = avg(CounterValue) default=0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by ObjectName, Computer | project CPUTrend, Computer) on Computer\r\n| join (Perf\r\n| where (ObjectName == \"Network Adapter\" and CounterName == \"Bytes Received/sec\")\r\n| make-series NWRTrend = avg(CounterValue) default=0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by ObjectName, Computer | project NWRTrend, Computer) on Computer\r\n| join (Perf\r\n| where (ObjectName == \"Network Adapter\" and CounterName == \"Bytes Sent/sec\")\r\n| make-series NWSTrend = avg(CounterValue) default=0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by ObjectName, Computer | project NWSTrend, Computer) on Computer\r\n| project Computer, FullName, HostPool, TSActTrend, MemTrend, CPUTrend, NWRTrend, NWSTrend",
-                    "size": 0,
-                    "title": "Host Perf Counters",
+                    "query": "let WVDHosts = dynamic([{WVDHosts}]);\r\nHeartbeat\r\n| extend HostPool = '{HostPool}'\r\n| extend FullName = strcat(HostPool, \"/\", Computer)\r\n| where FullName in (WVDHosts)\r\n| join (Perf\r\n| where (ObjectName == \"Terminal Services\" and CounterName == \"Active Sessions\")\r\n| make-series TSActTrend = avg(CounterValue) default=0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by ObjectName, Computer | project TSActTrend, Computer) on Computer\r\n| join (Perf\r\n| where (ObjectName == \"Memory\" and CounterName == \"% Committed Bytes In Use\")\r\n| make-series MemTrend = avg(CounterValue) default=0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by ObjectName, Computer | project MemTrend, Computer) on Computer\r\n| join (Perf\r\n| where (ObjectName == \"Processor\" and CounterName == \"% Processor Time\")\r\n| make-series CPUTrend = avg(CounterValue) default=0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by ObjectName, Computer | project CPUTrend, Computer) on Computer\r\n| project Computer, FullName, HostPool, TSActTrend, MemTrend, CPUTrend",
+                    "size": 4,
                     "timeContext": {
                       "durationMs": 0
                     },
@@ -407,28 +399,75 @@
                     "resourceType": "microsoft.operationalinsights/workspaces",
                     "crossComponentResources": [
                       "{Workspace}"
-                    ]
+                    ],
+                    "visualization": "tiles",
+                    "gridSettings": {
+                      "formatters": [
+                        {
+                          "columnMatch": "Computer",
+                          "formatter": 13,
+                          "formatOptions": {
+                            "linkTarget": null,
+                            "showIcon": true
+                          }
+                        },
+                        {
+                          "columnMatch": "FullName",
+                          "formatter": 5,
+                          "formatOptions": {}
+                        },
+                        {
+                          "columnMatch": "HostPool",
+                          "formatter": 5,
+                          "formatOptions": {}
+                        },
+                        {
+                          "columnMatch": "TSActTrend",
+                          "formatter": 5,
+                          "formatOptions": {}
+                        },
+                        {
+                          "columnMatch": "MemTrend",
+                          "formatter": 5,
+                          "formatOptions": {}
+                        },
+                        {
+                          "columnMatch": "CPUTrend",
+                          "formatter": 5,
+                          "formatOptions": {}
+                        }
+                      ]
+                    },
+                    "tileSettings": {
+                      "titleContent": {
+                        "columnMatch": "Computer",
+                        "formatter": 1,
+                        "formatOptions": {}
+                      },
+                      "showBorder": false
+                    }
                   },
-                  "conditionalVisibility": {
-                    "parameterName": "Debug",
-                    "comparison": "isEqualTo",
-                    "value": "True"
-                  },
-                  "name": "hostperf"
+                  "customWidth": "50",
+                  "name": "hostperf",
+                  "styleSettings": {
+                    "margin": "1px",
+                    "padding": "1px",
+                    "progressStyle": "none"
+                  }
                 },
                 {
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
                     "query": "{\"version\":\"ARMEndpoint/1.0\",\"data\":null,\"headers\":[],\"method\":\"GET\",\"path\":\"{SubscriptionID}/resourcegroups/{ResourceGroup}/providers/Microsoft.DesktopVirtualization/hostpools/{HostPool}/sessionhosts?api-version=2019-01-23-preview\",\"urlParams\":[],\"batchDisabled\":false,\"transformers\":[{\"type\":\"jsonpath\",\"settings\":{\"tablePath\":\"$.value\",\"columns\":[{\"path\":\"$.properties.status\",\"columnid\":\"Status\"},{\"path\":\"$.name\",\"columnid\":\"Name\"},{\"path\":\"$.properties.lastHeartBeat\",\"columnid\":\"LastHeartbeat\"},{\"path\":\"$.properties.sessions\",\"columnid\":\"Sessions\"}]}}]}",
-                    "size": 0,
-                    "title": "Host Pool overview",
+                    "size": 4,
                     "queryType": 12,
+                    "visualization": "tiles",
                     "gridSettings": {
                       "formatters": [
                         {
                           "columnMatch": "Status",
-                          "formatter": 11,
+                          "formatter": 5,
                           "formatOptions": {}
                         },
                         {
@@ -441,15 +480,13 @@
                         },
                         {
                           "columnMatch": "LastHeartbeat",
-                          "formatter": 6,
+                          "formatter": 5,
                           "formatOptions": {}
                         },
                         {
                           "columnMatch": "Sessions",
-                          "formatter": 3,
-                          "formatOptions": {
-                            "palette": "blue"
-                          }
+                          "formatter": 5,
+                          "formatOptions": {}
                         }
                       ],
                       "labelSettings": [
@@ -467,20 +504,49 @@
                           "label": "Last Session Count"
                         }
                       ]
+                    },
+                    "tileSettings": {
+                      "titleContent": {
+                        "columnMatch": "Name",
+                        "formatter": 1,
+                        "formatOptions": {}
+                      },
+                      "subtitleContent": {
+                        "columnMatch": "Status",
+                        "formatOptions": {}
+                      },
+                      "leftContent": {
+                        "columnMatch": "Sessions",
+                        "formatter": 12,
+                        "formatOptions": {
+                          "palette": "auto"
+                        },
+                        "numberFormat": {
+                          "unit": 17,
+                          "options": {
+                            "style": "decimal",
+                            "useGrouping": false,
+                            "maximumFractionDigits": 2,
+                            "maximumSignificantDigits": 3
+                          }
+                        }
+                      },
+                      "showBorder": false
                     }
                   },
-                  "conditionalVisibility": {
-                    "parameterName": "Debug",
-                    "comparison": "isEqualTo",
-                    "value": "True"
-                  },
-                  "name": "hostpooloverview"
+                  "customWidth": "50",
+                  "name": "hostpooloverview",
+                  "styleSettings": {
+                    "margin": "1px",
+                    "padding": "1px",
+                    "progressStyle": "none"
+                  }
                 },
                 {
                   "type": 3,
                   "content": {
                     "version": "KqlItem/1.0",
-                    "query": "{\"version\":\"Merge/1.0\",\"merges\":[{\"id\":\"eb82698f-2418-4770-8607-a730f61540f9\",\"mergeType\":\"rightouter\",\"leftTable\":\"hostpooloverview\",\"rightTable\":\"hostperf\",\"leftColumn\":\"Name\",\"rightColumn\":\"FullName\"}],\"projectRename\":[{\"originalName\":\"[hostperf].HostPool\",\"mergedName\":\"HostPool\",\"fromId\":\"unknown\"},{\"originalName\":\"[hostperf].Computer\",\"mergedName\":\"Computer\",\"fromId\":\"eb82698f-2418-4770-8607-a730f61540f9\"},{\"originalName\":\"[hostperf].FullName\",\"mergedName\":\"FullName\",\"fromId\":\"unknown\"},{\"originalName\":\"[hostpooloverview].Status\",\"mergedName\":\"Status\",\"fromId\":\"eb82698f-2418-4770-8607-a730f61540f9\"},{\"originalName\":\"[hostpooloverview].Name\",\"mergedName\":\"Name\",\"fromId\":\"eb82698f-2418-4770-8607-a730f61540f9\"},{\"originalName\":\"[hostpooloverview].LastHeartbeat\",\"mergedName\":\"LastHeartbeat\",\"fromId\":\"eb82698f-2418-4770-8607-a730f61540f9\"},{\"originalName\":\"[hostpooloverview].Sessions\",\"mergedName\":\"Last Session Count\",\"fromId\":\"eb82698f-2418-4770-8607-a730f61540f9\"},{\"originalName\":\"[hostperf].TSActTrend\",\"mergedName\":\"TSActTrend\",\"fromId\":\"unknown\"},{\"originalName\":\"[hostperf].MemTrend\",\"mergedName\":\"MemTrend\",\"fromId\":\"eb82698f-2418-4770-8607-a730f61540f9\"},{\"originalName\":\"[hostperf].CPUTrend\",\"mergedName\":\"CPUTrend\",\"fromId\":\"eb82698f-2418-4770-8607-a730f61540f9\"},{\"originalName\":\"[hostperf].NWRTrend\",\"mergedName\":\"NWRTrend\",\"fromId\":\"eb82698f-2418-4770-8607-a730f61540f9\"},{\"originalName\":\"[hostperf].NWSTrend\",\"mergedName\":\"NWSTrend\",\"fromId\":\"eb82698f-2418-4770-8607-a730f61540f9\"}]}",
+                    "query": "{\"version\":\"Merge/1.0\",\"merges\":[{\"id\":\"eb82698f-2418-4770-8607-a730f61540f9\",\"mergeType\":\"innerunique\",\"leftTable\":\"hostpooloverview\",\"rightTable\":\"hostperf\",\"leftColumn\":\"Name\",\"rightColumn\":\"FullName\"}],\"projectRename\":[{\"originalName\":\"[hostperf].HostPool\",\"mergedName\":\"HostPool\",\"fromId\":\"unknown\"},{\"originalName\":\"[hostperf].FullName\",\"mergedName\":\"FullName\",\"fromId\":\"unknown\"},{\"originalName\":\"[hostperf].Computer\",\"mergedName\":\"Computer\",\"fromId\":\"eb82698f-2418-4770-8607-a730f61540f9\"},{\"originalName\":\"[hostpooloverview].Status\",\"mergedName\":\"Status\",\"fromId\":\"eb82698f-2418-4770-8607-a730f61540f9\"},{\"originalName\":\"[hostpooloverview].Name\",\"mergedName\":\"Name\",\"fromId\":\"eb82698f-2418-4770-8607-a730f61540f9\"},{\"originalName\":\"[hostpooloverview].LastHeartbeat\",\"mergedName\":\"LastHeartbeat\",\"fromId\":\"eb82698f-2418-4770-8607-a730f61540f9\"},{\"originalName\":\"[hostpooloverview].Sessions\",\"mergedName\":\"Last Session Count\",\"fromId\":\"eb82698f-2418-4770-8607-a730f61540f9\"},{\"originalName\":\"[hostperf].TSActTrend\",\"mergedName\":\"TSActTrend\",\"fromId\":\"unknown\"},{\"originalName\":\"[hostperf].MemTrend\",\"mergedName\":\"MemTrend\",\"fromId\":\"eb82698f-2418-4770-8607-a730f61540f9\"},{\"originalName\":\"[hostperf].CPUTrend\",\"mergedName\":\"CPUTrend\",\"fromId\":\"eb82698f-2418-4770-8607-a730f61540f9\"},{\"originalName\":\"[hostperf].NWSTrend\"},{\"originalName\":\"[hostperf].NWRTrend\"}]}",
                     "size": 0,
                     "queryType": 7,
                     "gridSettings": {
@@ -579,10 +645,10 @@
                           "columnId": "HostPool"
                         },
                         {
-                          "columnId": "Computer"
+                          "columnId": "FullName"
                         },
                         {
-                          "columnId": "FullName"
+                          "columnId": "Computer"
                         },
                         {
                           "columnId": "Status"
@@ -607,21 +673,13 @@
                         {
                           "columnId": "CPUTrend",
                           "label": "CPU Utilisation"
-                        },
-                        {
-                          "columnId": "NWRTrend",
-                          "label": "Network Bytes Received"
-                        },
-                        {
-                          "columnId": "NWSTrend",
-                          "label": "Network Bytes Sent"
                         }
                       ]
                     },
                     "sortBy": []
                   },
                   "showPin": false,
-                  "name": "query - 3"
+                  "name": "hostandperfmerge"
                 }
               ]
             },
@@ -653,7 +711,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "WVDConnections\r\n| parse SessionHostName with ComputerName \".\" *\r\n| where ComputerName in ({WVDHosts})\r\n| where State == \"Connected\"\r\n| summarize UserCount = count() by UserName\r\n| sort by UserCount desc\r\n| take 5",
+              "query": "let WVDHosts = dynamic([{WVDHosts}]);\r\nWVDConnections\r\n| extend HostPool = '{HostPool}'\r\n| extend HostPool = strcat(HostPool, \"/\")\r\n| extend Computername = strcat(HostPool, SessionHostName)\r\n| where Computername in (WVDHosts)\r\n| where State == \"Connected\"\r\n| summarize UserCount = count() by UserName\r\n| sort by UserCount desc\r\n| take 5",
               "size": 1,
               "title": "Top 5 Active Users",
               "noDataMessage": "No active users detected in the selected time period.",
@@ -727,7 +785,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "WVDConnections\r\n| parse SessionHostName with ComputerName \".\" *\r\n| where ComputerName in ({WVDHosts})\r\n| summarize ConnectCount = count() by ConnectionType",
+              "query": "let WVDHosts = dynamic([{WVDHosts}]);\r\nWVDConnections\r\n| extend HostPool = '{HostPool}'\r\n| extend HostPool = strcat(HostPool, \"/\")\r\n| extend Computername = strcat(HostPool, SessionHostName)\r\n| where Computername in (WVDHosts)\r\n| summarize ConnectCount = count() by ConnectionType",
               "size": 1,
               "title": "WVD Connections by ConnectionType",
               "noDataMessage": "No connections detection in the selected time period",
@@ -756,7 +814,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "WVDConnections\r\n| parse SessionHostName with ComputerName \".\" *\r\n| where ComputerName in ({WVDHosts})\r\n| where State == \"Connected\"\r\n| extend ClientOSType = pack(\"ClientOSVersion\", ClientOS)\r\n| summarize AggregatedValue = count() by ClientOS",
+              "query": "let WVDHosts = dynamic([{WVDHosts}]);\r\nWVDConnections\r\n| extend HostPool = '{HostPool}'\r\n| extend HostPool = strcat(HostPool, \"/\")\r\n| extend Computername = strcat(HostPool, SessionHostName)\r\n| where Computername in (WVDHosts)\r\n| where State == \"Connected\"\r\n| extend ClientOSType = pack(\"ClientOSVersion\", ClientOS)\r\n| summarize AggregatedValue = count() by ClientOS",
               "size": 1,
               "title": "Client Connection Operating System",
               "noDataMessage": "No client connections detected in the selected time frame.",
@@ -795,7 +853,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "Perf\r\n| where ObjectName == \"Terminal Services\" \r\n| where CounterName == \"Active Sessions\" \r\n| summarize arg_max(TimeGenerated, *) by Computer\r\n| project Computer, CounterName, CounterValue\r\n| order by CounterValue desc\r\n| take 5",
+              "query": "let WVDHosts = dynamic([{WVDHosts}]);\r\nPerf\r\n| extend HostPool = '{HostPool}'\r\n| extend HostPool = strcat(HostPool, \"/\")\r\n| extend Computername = strcat(HostPool, Computer)\r\n| where Computername in (WVDHosts)\r\n| where ObjectName == \"Terminal Services\" \r\n| where CounterName == \"Active Sessions\" \r\n| summarize arg_max(TimeGenerated, *) by Computer\r\n| project Computer, CounterName, CounterValue\r\n| order by CounterValue desc\r\n| take 5",
               "size": 1,
               "title": "Top 5 hosts with connected sessions",
               "noDataMessage": "No session information to display. Please ensure that you have enabled collection of the Terminal Services performance counters into your workspace.have enabled the ",
@@ -863,7 +921,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "Perf\r\n| where ObjectName == \"Terminal Services\" \r\n| where CounterName == \"Inactive Sessions\" \r\n| summarize arg_max(TimeGenerated, *) by Computer\r\n| project Computer, CounterName, CounterValue\r\n| order by CounterValue desc\r\n| take 5",
+              "query": "let WVDHosts = dynamic([{WVDHosts}]);\r\nPerf\r\n| extend HostPool = '{HostPool}'\r\n| extend HostPool = strcat(HostPool, \"/\")\r\n| extend Computername = strcat(HostPool, Computer)\r\n| where Computername in (WVDHosts)\r\n| where ObjectName == \"Terminal Services\" \r\n| where CounterName == \"Inactive Sessions\" \r\n| summarize arg_max(TimeGenerated, *) by Computer\r\n| project Computer, CounterName, CounterValue\r\n| order by CounterValue desc\r\n| take 5",
               "size": 1,
               "title": "Top 5 host with disconnected sessions",
               "noDataMessage": "No disconnected sessions detected in the selected time frame",
@@ -920,7 +978,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "Perf\r\n| parse Computer with ComputerName \".\" *\r\n| where ComputerName in ({WVDHosts})\r\n| where ObjectName == \"Terminal Services\" \r\n| where CounterName == \"Total Sessions\" \r\n| summarize arg_max(TimeGenerated, *) by Computer\r\n| project Computer, CounterName, CounterValue\r\n| order by CounterValue desc\r\n| take 5",
+              "query": "let WVDHosts = dynamic([{WVDHosts}]);\r\nPerf\r\n| extend HostPool = '{HostPool}'\r\n| extend HostPool = strcat(HostPool, \"/\")\r\n| extend Computername = strcat(HostPool, Computer)\r\n| where Computername in (WVDHosts)\r\n| where ObjectName == \"Terminal Services\" \r\n| where CounterName == \"Total Sessions\" \r\n| summarize arg_max(TimeGenerated, *) by Computer\r\n| project Computer, CounterName, CounterValue\r\n| order by CounterValue desc\r\n| take 5",
               "size": 1,
               "title": "Total Sessions top 5 Hosts",
               "noDataMessage": "No total sessions detected in the selected time range. If there have been sessions, please ensure that the Terminal Services counters are being collected into your workspace.",
@@ -974,7 +1032,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "Perf\r\n| parse Computer with ComputerName \".\" *\r\n| where ComputerName in ({WVDHosts})\r\n| where CounterName == \"Active Sessions\"\r\n| extend ActiveSessions = toint(CounterValue)\r\n| project Computer, ActiveTimeStamp=TimeGenerated, ActiveSessions \r\n| join kind= inner (\r\n   Perf\r\n   | where CounterName == \"Inactive Sessions\"\r\n   | extend totalinactivesessions = toint(CounterValue)\r\n   | extend InactiveSessions = totalinactivesessions - 2\r\n   | project Computer, InactiveTimeStamp=TimeGenerated, InactiveSessions  \r\n) on Computer \r\n| where (ActiveTimeStamp - InactiveTimeStamp) between (0min .. 15s)\r\n| project ActiveSessions, InactiveSessions, bin(ActiveTimeStamp, 5m)\r\n\r\n",
+              "query": "let WVDHosts = dynamic([{WVDHosts}]);\r\nPerf\r\n| extend HostPool = '{HostPool}'\r\n| extend HostPool = strcat(HostPool, \"/\")\r\n| extend Computername = strcat(HostPool, Computer)\r\n| where Computername in (WVDHosts)\r\n| where CounterName == \"Active Sessions\"\r\n| extend ActiveSessions = toint(CounterValue)\r\n| project Computer, ActiveTimeStamp=TimeGenerated, ActiveSessions \r\n| join kind= inner (\r\n   Perf\r\n   | where CounterName == \"Inactive Sessions\"\r\n   | extend totalinactivesessions = toint(CounterValue)\r\n   | extend InactiveSessions = totalinactivesessions - 2\r\n   | project Computer, InactiveTimeStamp=TimeGenerated, InactiveSessions  \r\n) on Computer \r\n| where (ActiveTimeStamp - InactiveTimeStamp) between (0min .. 15s)\r\n| project ActiveSessions, InactiveSessions, bin(ActiveTimeStamp, 5m)\r\n\r\n",
               "size": 0,
               "aggregation": 2,
               "title": "Session Status History",
@@ -1021,7 +1079,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "WVDErrors \r\n| summarize ErrorCount = count() by Source ",
+              "query": "WVDErrors\r\n| parse _ResourceId with * \"/hostpools/\" HostPoolName\r\n| where HostPoolName in ('{HostPool}')\r\n| summarize ErrorCount = count() by Source",
               "size": 1,
               "title": "WVD Errors by Source",
               "noDataMessage": "No errors report in the selected time period",
@@ -1049,7 +1107,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "WVDErrors \r\n| summarize count() by UserName",
+              "query": "WVDErrors\r\n| parse _ResourceId with * \"/hostpools/\" HostPoolName\r\n| where HostPoolName in ('{HostPool}')\r\n| summarize count() by UserName",
               "size": 1,
               "title": "Top users encountering errors",
               "noDataMessage": "No errors detected in the selected time period",
@@ -1077,7 +1135,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "WVDConnections\r\n| parse SessionHostName with ComputerName \".\" *\r\n| where ComputerName in ({WVDHosts})\r\n| where State == \"Connected\"\r\n| extend ClientOSType = pack(\"ClientOSVersion\", ClientOS)\r\n| project _ResourceId, TimeGenerated, UserName, State, ClientOS, ClientVersion, ClientType, ConnectionType, ResourceAlias, SessionHostName, SessionHostIPAddress",
+              "query": "let WVDHosts = dynamic([{WVDHosts}]);\r\nWVDConnections\r\n| extend HostPool = '{HostPool}'\r\n| extend HostPool = strcat(HostPool, \"/\")\r\n| extend Computername = strcat(HostPool, SessionHostName)\r\n| where Computername in (WVDHosts)\r\n| where State == \"Connected\"\r\n| extend ClientOSType = pack(\"ClientOSVersion\", ClientOS)\r\n| project _ResourceId, TimeGenerated, UserName, State, ClientOS, ClientVersion, ClientType, ConnectionType, ResourceAlias, SessionHostName, SessionHostIPAddress",
               "size": 0,
               "showAnalytics": true,
               "title": "WVD Connected Session Details",
@@ -1102,7 +1160,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "WVDErrors \r\n| parse _ResourceId with * \"/hostpools/\" HostPoolName\r\n| where HostPoolName in ('{HostPool}')\r\n| where ServiceError ==\"false\"\r\n| summarize usercount = count(UserName) by CodeSymbolic\r\n| project CodeSymbolic, usercount\r\n| sort by usercount desc",
+              "query": "WVDErrors\r\n| parse _ResourceId with * \"/hostpools/\" HostPoolName\r\n| where HostPoolName in ('{HostPool}')\r\n| where ServiceError ==\"false\"\r\n| summarize usercount = count(UserName) by CodeSymbolic\r\n| project CodeSymbolic, usercount\r\n| sort by usercount desc",
               "size": 1,
               "title": "WVD Errors by type",
               "noDataMessage": "No errors reported in the selected time period",
@@ -1185,27 +1243,20 @@
                   "id": "e1e164a5-c5e8-4219-997a-fc580dc3f593",
                   "version": "KqlParameterItem/1.0",
                   "name": "UserName",
-                  "type": 2,
+                  "type": 1,
+                  "description": "Please enter the username you would like to explore",
                   "isRequired": true,
-                  "query": "WVDCheckpoints\r\n| parse _ResourceId with * \"/hostpools/\" HostPoolName\r\n| where HostPoolName in ('{HostPool}')\r\n| summarize count() by UserName \r\n| order by count_ desc\r\n| project UserName",
-                  "crossComponentResources": [
-                    "{Workspace}"
-                  ],
-                  "value": "wvd9@setspn.tk",
-                  "typeSettings": {
-                    "additionalResourceOptions": []
-                  },
+                  "value": "wvd9",
                   "timeContext": {
                     "durationMs": 0
                   },
                   "timeContextFromParameter": "TimeRange",
-                  "queryType": 0,
-                  "resourceType": "microsoft.operationalinsights/workspaces"
+                  "resourceType": "microsoft.insights/components"
                 }
               ],
               "style": "pills",
               "queryType": 0,
-              "resourceType": "microsoft.operationalinsights/workspaces"
+              "resourceType": "microsoft.insights/components"
             },
             "name": "parameters - 1"
           },
@@ -1213,7 +1264,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "WVDConnections\r\n|where UserName == '{UserName}'\r\n|take 100\r\n|sort by TimeGenerated asc, CorrelationId\r\n|summarize  Connectcount = dcount(CorrelationId) by bin(TimeGenerated, 1d)",
+              "query": "WVDConnections\r\n|where UserName contains '{UserName}'\r\n|take 100\r\n|sort by TimeGenerated asc, CorrelationId\r\n|summarize  Connectcount = dcount(CorrelationId) by bin(TimeGenerated, 1d)",
               "size": 0,
               "showAnalytics": true,
               "title": "Connections per day for user {UserName}",
@@ -1239,7 +1290,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "WVDConnections\r\n|where UserName == '{UserName}'\r\n|sort by TimeGenerated asc, CorrelationId\r\n| project TimeGenerated, CorrelationId, _ResourceId, SessionHostName, SessionHostIPAddress, UserName, State, ClientOS, ClientVersion, ClientType, ConnectionType, ResourceAlias, TenantId",
+              "query": "WVDConnections\r\n|where UserName contains '{UserName}'\r\n|sort by TimeGenerated asc, CorrelationId\r\n| project TimeGenerated, CorrelationId, _ResourceId, SessionHostName, SessionHostIPAddress, UserName, State, ClientOS, ClientVersion, ClientType, ConnectionType, ResourceAlias, TenantId",
               "size": 0,
               "showAnalytics": true,
               "title": "All connections for user {UserName}",
@@ -1331,7 +1382,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "let Events = WVDConnections \r\n| where UserName == '{UserName}' ;\r\nEvents\r\n| where State == \"Connected\"\r\n| project CorrelationId , UserName, ResourceAlias , StartTime=TimeGenerated\r\n| join (Events\r\n| where State == \"Completed\"\r\n| project EndTime=TimeGenerated, CorrelationId)\r\non CorrelationId\r\n| project Duration = EndTime - StartTime, ResourceAlias\r\n| sort by Duration desc\r\n",
+              "query": "let Events = WVDConnections \r\n| where UserName contains '{UserName}' ;\r\nEvents\r\n| where State == \"Connected\"\r\n| project CorrelationId , UserName, ResourceAlias , StartTime=TimeGenerated\r\n| join (Events\r\n| where State == \"Completed\"\r\n| project EndTime=TimeGenerated, CorrelationId)\r\non CorrelationId\r\n| project Duration = EndTime - StartTime, ResourceAlias\r\n| sort by Duration desc\r\n",
               "size": 1,
               "showAnalytics": true,
               "title": "Connection Duration for user {UserName}",
@@ -1352,7 +1403,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "WVDErrors\r\n| where UserName == '{UserName}'\r\n| summarize count() by Source",
+              "query": "WVDErrors\r\n| where UserName contains '{UserName}'\r\n| summarize count() by Source",
               "size": 1,
               "title": "WVD Errors by Source - {UserName}",
               "noDataMessage": "No errors detected for {UserName} in the selected time range",
@@ -1380,7 +1431,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "WVDErrors\r\n| where UserName == '{UserName}'\r\n| project TimeGenerated, CorrelationId, _ResourceId, UserName, ActivityType, Source, Code, CodeSymbolic, Message, TenantId",
+              "query": "WVDErrors\r\n| where UserName contains '{UserName}'\r\n| project TimeGenerated, CorrelationId, _ResourceId, UserName, ActivityType, Source, Code, CodeSymbolic, Message, TenantId",
               "size": 0,
               "showAnalytics": true,
               "title": "WVD Errors by User - {UserName}",
@@ -1608,7 +1659,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "Heartbeat\r\n| parse Computer with ComputerName \".\" *\r\n| where ComputerName in ({WVDHosts})\r\n| join (Perf\r\n| where (ObjectName == \"Terminal Services\" and CounterName == \"Active Sessions\")\r\n| make-series TSActTrend = avg(CounterValue) default=0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by ObjectName, Computer | project TSActTrend, Computer) on Computer\r\n| join (Perf\r\n| where (ObjectName == \"Memory\" and CounterName == \"% Committed Bytes In Use\")\r\n| make-series MemTrend = avg(CounterValue) default=0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by ObjectName, Computer | project MemTrend, Computer) on Computer\r\n| join (Perf\r\n| where (ObjectName == \"Processor\" and CounterName == \"% Processor Time\")\r\n| make-series CPUTrend = avg(CounterValue) default=0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by ObjectName, Computer | project CPUTrend, Computer) on Computer\r\n| join (Perf\r\n| where (ObjectName == \"Network Adapter\" and CounterName == \"Bytes Received/sec\")\r\n| make-series NWRTrend = avg(CounterValue) default=0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by ObjectName, Computer | project NWRTrend, Computer) on Computer\r\n| join (Perf\r\n| where (ObjectName == \"Network Adapter\" and CounterName == \"Bytes Sent/sec\")\r\n| make-series NWSTrend = avg(CounterValue) default=0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by ObjectName, Computer | project NWSTrend, Computer) on Computer\r\n| project Computer, TSActTrend, MemTrend, CPUTrend, NWRTrend, NWSTrend",
+              "query": "let WVDHosts = dynamic([{WVDHosts}]);\r\nHeartbeat\r\n| extend HostPool = '{HostPool}'\r\n| extend HostPool = strcat(HostPool, \"/\")\r\n| extend Computername = strcat(HostPool, Computer)\r\n| where Computername in (WVDHosts)\r\n| join (Perf\r\n| where (ObjectName == \"Terminal Services\" and CounterName == \"Active Sessions\")\r\n| make-series TSActTrend = avg(CounterValue) default=0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by ObjectName, Computer | project TSActTrend, Computer) on Computer\r\n| join (Perf\r\n| where (ObjectName == \"Memory\" and CounterName == \"% Committed Bytes In Use\")\r\n| make-series MemTrend = avg(CounterValue) default=0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by ObjectName, Computer | project MemTrend, Computer) on Computer\r\n| join (Perf\r\n| where (ObjectName == \"Processor\" and CounterName == \"% Processor Time\")\r\n| make-series CPUTrend = avg(CounterValue) default=0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by ObjectName, Computer | project CPUTrend, Computer) on Computer\r\n| join (Perf\r\n| where (ObjectName == \"Network Adapter\" and CounterName == \"Bytes Received/sec\")\r\n| make-series NWRTrend = avg(CounterValue) default=0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by ObjectName, Computer | project NWRTrend, Computer) on Computer\r\n| join (Perf\r\n| where (ObjectName == \"Network Adapter\" and CounterName == \"Bytes Sent/sec\")\r\n| make-series NWSTrend = avg(CounterValue) default=0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by ObjectName, Computer | project NWSTrend, Computer) on Computer\r\n| project Computer, TSActTrend, MemTrend, CPUTrend, NWRTrend, NWSTrend",
               "size": 1,
               "showAnalytics": true,
               "title": "Host Performance Overview",
@@ -1693,7 +1744,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "Perf\r\n| where (ObjectName == \"Logical Disk\" or ObjectName == \"LogicalDisk\") and CounterName contains \"%\" and InstanceName != \"_Total\" and InstanceName !contains \"HarddiskVolume\"\r\n| project TimeGenerated, Computer, ObjectName, CounterName, InstanceName, CounterValue \r\n| summarize arg_max(TimeGenerated, *) by Computer\r\n| top 10 by CounterValue asc",
+              "query": "let WVDHosts = dynamic([{WVDHosts}]);\r\nPerf\r\n| extend HostPool = '{HostPool}'\r\n| extend HostPool = strcat(HostPool, \"/\")\r\n| extend Computername = strcat(HostPool, Computer)\r\n| where Computername in (WVDHosts)\r\n| where (ObjectName == \"Logical Disk\" or ObjectName == \"LogicalDisk\") and CounterName contains \"%\" and InstanceName != \"_Total\" and InstanceName !contains \"HarddiskVolume\"\r\n| project TimeGenerated, Computer, ObjectName, CounterName, InstanceName, CounterValue \r\n| summarize arg_max(TimeGenerated, *) by Computer, InstanceName\r\n| top 10 by CounterValue asc",
               "size": 1,
               "showAnalytics": true,
               "title": "Top 10 Hosts - Disk % Free Space",
@@ -1738,6 +1789,9 @@
                     "columnId": "Computer"
                   },
                   {
+                    "columnId": "InstanceName"
+                  },
+                  {
                     "columnId": "TimeGenerated",
                     "label": "Date",
                     "comment": "Most recent performance counter collected"
@@ -1747,9 +1801,6 @@
                   },
                   {
                     "columnId": "CounterName"
-                  },
-                  {
-                    "columnId": "InstanceName"
                   },
                   {
                     "columnId": "CounterValue"
@@ -1770,7 +1821,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "Perf\r\n| where ObjectName == \"Processor\" and CounterName == \"% Processor Time\"\r\n| project TimeGenerated, Computer, ObjectName, CounterName, InstanceName, CounterValue \r\n| summarize AggregatedValue = avg(CounterValue) by bin(TimeGenerated, 1h), Computer\r\n| summarize arg_max(TimeGenerated, *) by Computer\r\n| top 10 by AggregatedValue desc",
+              "query": "let WVDHosts = dynamic([{WVDHosts}]);\r\nPerf\r\n| extend HostPool = '{HostPool}'\r\n| extend HostPool = strcat(HostPool, \"/\")\r\n| extend Computername = strcat(HostPool, Computer)\r\n| where Computername in (WVDHosts)\r\n| where ObjectName == \"Processor\" and CounterName == \"% Processor Time\"\r\n| project TimeGenerated, Computer, ObjectName, CounterName, InstanceName, CounterValue \r\n| summarize AggregatedValue = avg(CounterValue) by bin(TimeGenerated, 1h), Computer\r\n| summarize arg_max(TimeGenerated, *) by Computer\r\n| top 10 by AggregatedValue desc",
               "size": 1,
               "showAnalytics": true,
               "title": "Top 10 Hosts - Processor Utilisation",
@@ -1815,7 +1866,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "Perf\r\n| parse Computer with ComputerName \".\" *\r\n| where ComputerName in ({WVDHosts})\r\n| where ObjectName == \"LogicalDisk\" and CounterName == \"% Free Space\" \r\n| where InstanceName <> \"_Total\" \r\n| summarize AggregatedValue = avg(CounterValue) by bin(TimeGenerated, 10m), Computer, InstanceName ",
+              "query": "let WVDHosts = dynamic([{WVDHosts}]);\r\nPerf\r\n| extend HostPool = '{HostPool}'\r\n| extend HostPool = strcat(HostPool, \"/\")\r\n| extend Computername = strcat(HostPool, Computer)\r\n| where Computername in (WVDHosts)\r\n| where ObjectName == \"LogicalDisk\" and CounterName == \"% Free Space\" \r\n| where InstanceName <> \"_Total\" \r\n| summarize AggregatedValue = avg(CounterValue) by bin(TimeGenerated, 10m), Computer, InstanceName ",
               "size": 1,
               "aggregation": 3,
               "title": "Logical Disk Space Used by Host",
@@ -1856,7 +1907,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "Perf\r\n| parse Computer with ComputerName \".\" *\r\n| where ComputerName in ({WVDHosts})\r\n| where ObjectName == \"Processor\" and CounterName == \"% Processor Time\"\r\n| summarize AggregatedValue = avg(CounterValue) by bin(TimeGenerated, 10m), Computer, InstanceName ",
+              "query": "let WVDHosts = dynamic([{WVDHosts}]);\r\nPerf\r\n| extend HostPool = '{HostPool}'\r\n| extend HostPool = strcat(HostPool, \"/\")\r\n| extend Computername = strcat(HostPool, Computer)\r\n| where Computername in (WVDHosts)\r\n| where ObjectName == \"Processor\" and CounterName == \"% Processor Time\"\r\n| summarize AggregatedValue = avg(CounterValue) by bin(TimeGenerated, 10m), Computer, InstanceName ",
               "size": 1,
               "aggregation": 3,
               "title": "Processor % Processor Time per host",
@@ -1897,7 +1948,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "Perf\r\n| parse Computer with ComputerName \".\" *\r\n| where ComputerName in ({WVDHosts})\r\n| where ObjectName == \"Memory\" and CounterName == \"% Committed Bytes In Use\"\r\n| summarize AggregatedValue = avg(CounterValue) by bin(TimeGenerated, 10m), Computer",
+              "query": "let WVDHosts = dynamic([{WVDHosts}]);\r\nPerf\r\n| extend HostPool = '{HostPool}'\r\n| extend HostPool = strcat(HostPool, \"/\")\r\n| extend Computername = strcat(HostPool, Computer)\r\n| where Computername in (WVDHosts)\r\n| where ObjectName == \"Memory\" and CounterName == \"% Committed Bytes In Use\"\r\n| summarize AggregatedValue = avg(CounterValue) by bin(TimeGenerated, 10m), Computer",
               "size": 1,
               "aggregation": 3,
               "title": "Memory % Committed bytes in use per Host",
@@ -1938,7 +1989,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "Perf\r\n| parse Computer with ComputerName \".\" *\r\n| where ComputerName in ({WVDHosts})\r\n| where ObjectName == \"Network Interface\" \r\n| summarize AggregatedValue = avg(CounterValue) by bin(TimeGenerated, 10m), Computer, InstanceName, CounterName ",
+              "query": "let WVDHosts = dynamic([{WVDHosts}]);\r\nPerf\r\n| extend HostPool = '{HostPool}'\r\n| extend HostPool = strcat(HostPool, \"/\")\r\n| extend Computername = strcat(HostPool, Computer)\r\n| where Computername in (WVDHosts)\r\n| where ObjectName == \"Network Interface\" \r\n| summarize AggregatedValue = avg(CounterValue) by bin(TimeGenerated, 10m), Computer, InstanceName, CounterName ",
               "size": 1,
               "aggregation": 3,
               "title": "Network Usage per host",
@@ -1973,6 +2024,27 @@
               "padding": "1px",
               "showBorder": true
             }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let WVDHosts = dynamic([{WVDHosts}]);\r\nPerf\r\n| extend HostPool = '{HostPool}'\r\n| extend HostPool = strcat(HostPool, \"/\")\r\n| extend Computername = strcat(HostPool, Computer)\r\n| where Computername in (WVDHosts)\r\n| where ObjectName == \"RemoteFX Network\"\r\n| where CounterName == \"Current TCP RTT\" or CounterName == \"Current UDP RTT\"\r\n| summarize AggregatedValue = avg(CounterValue) by bin(TimeGenerated, 1h), Computer, InstanceName",
+              "size": 0,
+              "aggregation": 3,
+              "title": "Current RTT",
+              "timeContext": {
+                "durationMs": 0
+              },
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "crossComponentResources": [
+                "{Workspace}"
+              ],
+              "visualization": "areachart"
+            },
+            "name": "hostperf-rtt"
           }
         ]
       },

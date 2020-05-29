@@ -21,6 +21,15 @@ This workbook visualises the health and performance of WVD (Spring Release). To 
 * `Process(*)\IO Write Operations/sec`
 * `Process(*)\Thread Count`
 * `Process(*)\Working Set`
+* `RemoteFX Graphics(*)\Average Encoding Time`
+* `RemoteFX Graphics(*)\Frames Skipped/Second - Insufficient Client Resources`
+* `RemoteFX Graphics(*)\Frames Skipped/Second - Insufficient Network Resources` 
+* `RemoteFX Graphics(*)\Frames Skipped/Second - Insufficient Server Resources`
+* `RemoteFX Network(*)\Current TCP Bandwidth`
+* `RemoteFX Network(*)\Current TCP RTT`
+* `RemoteFX Network(*)\Current UDP Bandwidth` 
+* `RemoteFX Network(*)\Current UDP RTT`
+
 
 
 To use this workbook, create a new workbook in Azure Monitor, and copy the code from this sample into the code area for the workbook, replacing the sample code in this workbook:
