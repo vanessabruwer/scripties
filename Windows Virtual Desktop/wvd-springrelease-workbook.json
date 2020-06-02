@@ -71,7 +71,8 @@
             "resourceType": "microsoft.resourcegraph/resources",
             "value": [
               "/subscriptions/182b812e-c741-4b45-93c6-26bdc3e4353b/resourceGroups/wvd-spring-update/providers/Microsoft.OperationalInsights/workspaces/wvdlogsetspn"
-            ]
+            ],
+            "label": "Log Analytics Workspace"
           },
           {
             "id": "2e3dfd9b-2d0f-4feb-94e8-107f220c4e28",
@@ -390,7 +391,7 @@
               "version": "KqlItem/1.0",
               "query": "let WVDHosts = dynamic([{WVDHosts}]);\r\nWVDConnections\r\n| extend HostPool = '{HostPool}'\r\n| extend HostPool = strcat(HostPool, \"/\")\r\n| extend Computername = strcat(HostPool, SessionHostName)\r\n| where Computername in (WVDHosts)\r\n| where Type =~\"WVDConnections\" and State =~ \"Started\" | extend Multi=split(_ResourceId, \"/\") | project ResourceAlias, HostPool=toupper(HP=Multi[8]), SessionHostName , UserName ,CState=iff(SessionHostOSVersion==\"<>\",\"Failure\",\"Success\"), CorrelationId, TimeGenerated, ResourceGroup=Multi[4], DesktopGroup_s=toupper(strcat(RG=Multi[4],\".\", HP=Multi[8]))\r\n| join kind= leftouter (\r\n    WVDCheckpoints\r\n) on CorrelationId\r\n| extend DurationFromLogon=datetime_diff(\"Second\",TimeGenerated1,TimeGenerated)\r\n| where Name=~\"RdpStackLogon\"\r\n| project UserName, ResourceGroup, DesktopGroup_s,SessionHost=SessionHostName, TimeStamp=TimeGenerated1, DurationFromLogon\r\n| summarize DurationInSeconds=avg(DurationFromLogon) by HostPool=UserName\r\n| order by DurationInSeconds desc\r\n| take 5",
               "size": 1,
-              "title": "Top 5 Session Durations by User",
+              "title": "Top 5 Session Logon Durations by User",
               "timeContext": {
                 "durationMs": 0
               },
@@ -431,7 +432,7 @@
             },
             "customWidth": "50",
             "showPin": true,
-            "name": "usersessionduration",
+            "name": "usersessionlogonduration",
             "styleSettings": {
               "margin": "1px",
               "padding": "1px",
@@ -1173,7 +1174,7 @@
                     "{Workspace}"
                   ],
                   "value": [
-                    "value::all"
+                    "Total Sessions"
                   ],
                   "typeSettings": {
                     "additionalResourceOptions": [
@@ -1410,7 +1411,7 @@
                   "type": 1,
                   "description": "Please enter the username you would like to explore",
                   "isRequired": true,
-                  "value": "wvd9",
+                  "value": "wvd10",
                   "timeContext": {
                     "durationMs": 0
                   },
@@ -2342,6 +2343,9 @@
                   "query": "Perf\r\n| where ObjectName == \"PhysicalDisk\"\r\n| summarize Count = count() by CounterName\r\n| project value = CounterName, label = CounterName, Selected = Count >= 0",
                   "crossComponentResources": [
                     "{Workspace}"
+                  ],
+                  "value": [
+                    "Avg. Disk Bytes/Read"
                   ],
                   "typeSettings": {
                     "additionalResourceOptions": [
