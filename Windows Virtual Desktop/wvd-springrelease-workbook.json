@@ -177,7 +177,7 @@
             },
             "resourceType": "microsoft.insights/components",
             "value": {
-              "durationMs": 1209600000
+              "durationMs": 7776000000
             }
           }
         ],
@@ -389,9 +389,9 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "let WVDHosts = dynamic([{WVDHosts}]);\r\nWVDConnections\r\n| extend HostPool = '{HostPool}'\r\n| extend HostPool = strcat(HostPool, \"/\")\r\n| extend Computername = strcat(HostPool, SessionHostName)\r\n| where Computername in (WVDHosts)\r\n| where Type =~\"WVDConnections\" and State =~ \"Started\" | extend Multi=split(_ResourceId, \"/\") | project ResourceAlias, HostPool=toupper(HP=Multi[8]), SessionHostName , UserName ,CState=iff(SessionHostOSVersion==\"<>\",\"Failure\",\"Success\"), CorrelationId, TimeGenerated, ResourceGroup=Multi[4], DesktopGroup_s=toupper(strcat(RG=Multi[4],\".\", HP=Multi[8]))\r\n| join kind= leftouter (\r\n    WVDCheckpoints\r\n) on CorrelationId\r\n| extend DurationFromLogon=datetime_diff(\"Second\",TimeGenerated1,TimeGenerated)\r\n| where Name=~\"RdpStackLogon\"\r\n| project UserName, ResourceGroup, DesktopGroup_s,SessionHost=SessionHostName, TimeStamp=TimeGenerated1, DurationFromLogon\r\n| summarize DurationInSeconds=avg(DurationFromLogon) by HostPool=UserName\r\n| order by DurationInSeconds desc\r\n| take 5",
+              "query": "let WVDHosts = dynamic([{WVDHosts}]);\r\nWVDConnections\r\n| extend HostPool = '{HostPool}'\r\n| extend HostPool = strcat(HostPool, \"/\")\r\n| extend Computername = strcat(HostPool, SessionHostName)\r\n| where Computername in (WVDHosts)\r\n| where Type =~\"WVDConnections\" and State =~ \"Connected\" \r\n| extend Multi=split(_ResourceId, \"/\")\r\n| project ResourceAlias, HostPool=toupper(HP=Multi[8]), SessionHostName , UserName ,CState=iff(SessionHostOSVersion==\"<>\",\"Failure\",\"Success\"), CorrelationId, TimeGenerated, ResourceGroup=Multi[4], DesktopGroup_s=toupper(strcat(RG=Multi[4],\".\", HP=Multi[8])), StartTime=TimeGenerated\r\n| join (WVDConnections\r\n| where State == \"Completed\"\r\n| project EndTime=TimeGenerated, CorrelationId)\r\non CorrelationId\r\n| project Duration = EndTime - StartTime,UserName\r\n| summarize Duration=avg(Duration) by UserName\r\n| sort by Duration desc\r\n| take 5\r\n",
               "size": 1,
-              "title": "Top 5 Session Logon Durations by User",
+              "title": "Top 5 Average Session Durations by User",
               "timeContext": {
                 "durationMs": 0
               },
@@ -417,16 +417,6 @@
                       }
                     }
                   }
-                ],
-                "labelSettings": [
-                  {
-                    "columnId": "HostPool",
-                    "label": "User Name"
-                  },
-                  {
-                    "columnId": "DurationInSeconds",
-                    "label": "Session Duration (Seconds)"
-                  }
                 ]
               }
             },
@@ -443,27 +433,12 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "let WVDHosts = dynamic([{WVDHosts}]);\r\nWVDConnections\r\n| extend HostPool = '{HostPool}'\r\n| extend HostPool = strcat(HostPool, \"/\")\r\n| extend Computername = strcat(HostPool, SessionHostName)\r\n| where Computername in (WVDHosts)\r\n| where State =~ \"Started\" and Type =~\"WVDConnections\" \r\n| extend CState=iff(SessionHostOSVersion==\"<>\",\"Failure\",\"Success\") | summarize Count=count() by State=CState\r\n| render piechart ",
-              "size": 1,
-              "title": "Brokered Sessions by State",
-              "timeContext": {
-                "durationMs": 0
-              },
-              "timeContextFromParameter": "TimeRange",
-              "queryType": 0,
-              "resourceType": "microsoft.operationalinsights/workspaces",
-              "crossComponentResources": [
-                "{Workspace}"
-              ]
+              "query": "{\"version\":\"ARMEndpoint/1.0\",\"data\":null,\"headers\":[],\"method\":\"GET\",\"path\":\"{SubscriptionID}/resourcegroups/{ResourceGroup}/providers/Microsoft.DesktopVirtualization/hostpools/{HostPool}?api-version=2019-01-23-preview\",\"urlParams\":[],\"batchDisabled\":false,\"transformers\":[{\"type\":\"jsonpath\",\"settings\":{\"tablePath\":\"$.properties\",\"columns\":[{\"path\":\"$.hostPoolType\",\"columnid\":\"HostPoolType\"},{\"path\":\"$.maxSessionLimit\",\"columnid\":\"MaxSessionLimit\"}]}}]}",
+              "size": 4,
+              "queryType": 12
             },
-            "customWidth": "50",
-            "showPin": true,
-            "name": "brokeredsessions",
-            "styleSettings": {
-              "margin": "1px",
-              "padding": "1px",
-              "showBorder": true
-            }
+            "customWidth": "33",
+            "name": "hostpoolspecifics"
           },
           {
             "type": 12,
@@ -472,17 +447,6 @@
               "groupType": "editable",
               "title": "Pool Health Overview",
               "items": [
-                {
-                  "type": 3,
-                  "content": {
-                    "version": "KqlItem/1.0",
-                    "query": "{\"version\":\"ARMEndpoint/1.0\",\"data\":null,\"headers\":[],\"method\":\"GET\",\"path\":\"{SubscriptionID}/resourcegroups/{ResourceGroup}/providers/Microsoft.DesktopVirtualization/hostpools/{HostPool}?api-version=2019-01-23-preview\",\"urlParams\":[],\"batchDisabled\":false,\"transformers\":[{\"type\":\"jsonpath\",\"settings\":{\"tablePath\":\"$.properties\",\"columns\":[{\"path\":\"$.hostPoolType\",\"columnid\":\"HostPoolType\"},{\"path\":\"$.maxSessionLimit\",\"columnid\":\"MaxSessionLimit\"}]}}]}",
-                    "size": 4,
-                    "queryType": 12
-                  },
-                  "customWidth": "33",
-                  "name": "hostpoolspecifics"
-                },
                 {
                   "type": 3,
                   "content": {
@@ -1174,7 +1138,8 @@
                     "{Workspace}"
                   ],
                   "value": [
-                    "Total Sessions"
+                    "Inactive Sessions",
+                    "Active Sessions"
                   ],
                   "typeSettings": {
                     "additionalResourceOptions": [
@@ -1239,34 +1204,6 @@
               "json": "# Session Diagnostics"
             },
             "name": "text - 0"
-          },
-          {
-            "type": 3,
-            "content": {
-              "version": "KqlItem/1.0",
-              "query": "WVDErrors\r\n| parse _ResourceId with * \"/hostpools/\" HostPoolName\r\n| where HostPoolName in ('{HostPool}')\r\n| summarize ErrorCount = count() by Source",
-              "size": 1,
-              "title": "WVD Errors by Source",
-              "noDataMessage": "No errors report in the selected time period",
-              "timeContext": {
-                "durationMs": 0
-              },
-              "timeContextFromParameter": "TimeRange",
-              "queryType": 0,
-              "resourceType": "microsoft.operationalinsights/workspaces",
-              "crossComponentResources": [
-                "{Workspace}"
-              ],
-              "visualization": "piechart"
-            },
-            "customWidth": "50",
-            "showPin": true,
-            "name": "WVDErrorspie",
-            "styleSettings": {
-              "margin": "1px",
-              "padding": "1px",
-              "showBorder": true
-            }
           },
           {
             "type": 3,
@@ -1411,7 +1348,7 @@
                   "type": 1,
                   "description": "Please enter the username you would like to explore",
                   "isRequired": true,
-                  "value": "wvd10",
+                  "value": "wvd9",
                   "timeContext": {
                     "durationMs": 0
                   },
@@ -1443,7 +1380,7 @@
               "crossComponentResources": [
                 "{Workspace}"
               ],
-              "visualization": "areachart"
+              "visualization": "barchart"
             },
             "name": "ConnectionsbyUser",
             "styleSettings": {
@@ -1563,34 +1500,6 @@
             },
             "customWidth": "50",
             "name": "ConnectionsDurationbyUser"
-          },
-          {
-            "type": 3,
-            "content": {
-              "version": "KqlItem/1.0",
-              "query": "WVDErrors\r\n| where UserName contains '{UserName}'\r\n| summarize count() by Source",
-              "size": 1,
-              "title": "WVD Errors by Source - {UserName}",
-              "noDataMessage": "No errors detected for {UserName} in the selected time range",
-              "timeContext": {
-                "durationMs": 0
-              },
-              "timeContextFromParameter": "TimeRange",
-              "queryType": 0,
-              "resourceType": "microsoft.operationalinsights/workspaces",
-              "crossComponentResources": [
-                "{Workspace}"
-              ],
-              "visualization": "piechart"
-            },
-            "customWidth": "50",
-            "showPin": true,
-            "name": "wvderrorsbyuserandsource",
-            "styleSettings": {
-              "margin": "1px",
-              "padding": "1px",
-              "showBorder": true
-            }
           },
           {
             "type": 3,
@@ -2340,12 +2249,12 @@
                   "multiSelect": true,
                   "quote": "'",
                   "delimiter": ",",
-                  "query": "Perf\r\n| where ObjectName == \"PhysicalDisk\"\r\n| summarize Count = count() by CounterName\r\n| project value = CounterName, label = CounterName, Selected = Count >= 0",
+                  "query": "Perf\r\n| where ObjectName == \"LogicalDisk\"\r\n| summarize Count = count() by CounterName\r\n| project value = CounterName, label = CounterName, Selected = Count >= 0",
                   "crossComponentResources": [
                     "{Workspace}"
                   ],
                   "value": [
-                    "Avg. Disk Bytes/Read"
+                    "Free Megabytes"
                   ],
                   "typeSettings": {
                     "additionalResourceOptions": [
@@ -2371,7 +2280,7 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "let WVDHosts = dynamic([{WVDHosts}]);\r\nlet Counter = dynamic([{DiskCounter}]);\r\nPerf\r\n| extend HostPool = '{HostPool}'\r\n| extend HostPool = strcat(HostPool, \"/\")\r\n| extend Computername = strcat(HostPool, Computer)\r\n| where Computername in (WVDHosts)\r\n| where ObjectName == \"PhysicalDisk\" and CounterName in (Counter) and InstanceName !contains \"Total\"\r\n| parse InstanceName with * \" \" DriveLetter\r\n| summarize AggregatedValue = avg(CounterValue) by bin(TimeGenerated, 10m), CounterName, Computer, DriveLetter",
+              "query": "let WVDHosts = dynamic([{WVDHosts}]);\r\nlet Counter = dynamic([{DiskCounter}]);\r\nPerf\r\n| extend HostPool = '{HostPool}'\r\n| extend HostPool = strcat(HostPool, \"/\")\r\n| extend Computername = strcat(HostPool, Computer)\r\n| where Computername in (WVDHosts)\r\n| where ObjectName == \"LogicalDisk\" and CounterName in (Counter) and InstanceName !contains \"Total\"\r\n| summarize AggregatedValue = avg(CounterValue) by bin(TimeGenerated, 10m), CounterName, Computer, InstanceName",
               "size": 0,
               "showAnalytics": true,
               "title": "{DiskCounter}",
