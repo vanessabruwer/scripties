@@ -21,6 +21,7 @@
             "version": "KqlParameterItem/1.0",
             "name": "Subscriptions",
             "type": 6,
+            "isRequired": true,
             "multiSelect": true,
             "quote": "'",
             "delimiter": ",",
@@ -29,8 +30,9 @@
               "value::selected"
             ],
             "value": [
+              "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765",
               "/subscriptions/5733bcb3-7fde-4caf-8629-41dc15e3b352",
-              "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765"
+              "/subscriptions/b34fa96b-796e-4888-8764-bc27825098a7"
             ],
             "typeSettings": {
               "additionalResourceOptions": [
@@ -53,7 +55,7 @@
               "{Subscriptions}"
             ],
             "value": [
-              "/subscriptions/5733bcb3-7fde-4caf-8629-41dc15e3b352/resourceGroups/CH-OpsRG-Pri/providers/Microsoft.OperationalInsights/workspaces/CH-LA"
+              "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765/resourceGroups/northwind-vb/providers/Microsoft.OperationalInsights/workspaces/NW-LA-Demo"
             ],
             "typeSettings": {
               "additionalResourceOptions": [
@@ -111,8 +113,24 @@
                 }
               ]
             },
-            "label": "Time Range",
-            "resourceType": "microsoft.insights/components"
+            "label": "Time Range"
+          },
+          {
+            "id": "815b18cd-b8c6-4ff8-90c0-7f7f739e537e",
+            "version": "KqlParameterItem/1.0",
+            "name": "SubscriptionID",
+            "type": 6,
+            "isRequired": true,
+            "query": "resourcecontainers\r\n | where type == \"microsoft.resources/subscriptions\"\r\n | summarize Count = count() by subscriptionId\r\n | project Label = subscriptionId, Id = subscriptionId, Selected = Count >= 0",
+            "crossComponentResources": [
+              "{Subscriptions}"
+            ],
+            "isHiddenWhenLocked": true,
+            "typeSettings": {
+              "additionalResourceOptions": []
+            },
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources"
           }
         ],
         "style": "pills",
@@ -124,7 +142,7 @@
     {
       "type": 1,
       "content": {
-        "json": "This report relies on assessment data from Azure Security Center with ATP integration and continuous export for all settings enabled, Azure Sentinel, Azure Policy and Azure Monitor. The Azure Monitor output relies on the following solutions:\r\n\r\n* Update Management (In Azure Automation)\r\n* Anti-Malware assessment\r\n* Keyvault Analytics\r\n* Application Gateway Analytics"
+        "json": "This report relies on assessment data from Azure Security Center with ATP integration and continuous export for all settings enabled, Azure Sentinel, Azure Policy and Azure Monitor. The Azure Monitor output relies on the following solutions:\r\n\r\n* Update Management (In Azure Automation)\r\n* Anti-Malware assessment\r\n* Keyvault Analytics\r\n* Application Gateway Analytics\r\n\r\nIn addition, the Secure Score information relies on regular output from the Azure Automation runbook that captures the Secure Score via the API and writes it into the Log Analytics workspace."
       },
       "conditionalVisibility": {
         "parameterName": "Workspaces",
@@ -191,375 +209,499 @@
       "name": "links - 15"
     },
     {
-      "type": 1,
+      "type": 12,
       "content": {
-        "json": "<H2>Security Overview</H2>"
-      },
-      "conditionalVisibility": {
-        "parameterName": "selectedTab",
-        "comparison": "isEqualTo",
-        "value": "SecurityOverview"
-      },
-      "name": "text - 2"
-    },
-    {
-      "type": 3,
-      "content": {
-        "version": "KqlItem/1.0",
-        "query": "securityresources\r\n| where type contains \"microsoft.security/securitystatusessummaries\"\r\n| extend \r\n    Healthy = trim (' ', tostring(properties.resourceHealthSummary.healthy)),\r\n    Medium = trim (' ', tostring(properties.resourceHealthSummary.medium)),\r\n    High = trim (' ', tostring(properties.resourceHealthSummary.high)),\r\n    None = trim (' ', tostring(properties.resourceHealthSummary.none)),\r\n    Low = trim (' ', tostring(properties.resourceHealthSummary.low)),\r\n    ResourceCount = trim (' ', tostring(properties.resourceCount))\r\n| extend Healthy = toint(iif(isnotempty(Healthy), Healthy, '0'))\r\n| extend Medium = toint(iif(isnotempty(Medium), Medium, '0'))\r\n| extend High = toint(iif(isnotempty(High), High, '0'))\r\n| extend None = toint(iif(isnotempty(None), None, '0'))\r\n| extend Low = toint(iif(isnotempty(Low), Low, '0'))\r\n| project subscriptionId, name, ResourceCount, Healthy, Medium, High, Low, None\r\n| summarize sumHealth = sum(Healthy), sumMedium = sum(Medium), sumHigh = sum(High), sumLow = sum(Low), sumNone = sum(None) by subscriptionId\r\n| extend sumAll = (todouble(sumHealth) + todouble(sumMedium) + todouble(sumHigh) + todouble(sumLow))\r\n| extend sumUnhealthy = (todouble(sumMedium) + todouble(sumHigh) + todouble(sumLow))\r\n| extend sScore = (sumUnhealthy/sumAll)*100\r\n| project subscriptionId, sumHealth, sumUnhealthy, sScore",
-        "size": 1,
-        "title": "Security Health Overview",
-        "queryType": 1,
-        "resourceType": "microsoft.resourcegraph/resources",
-        "crossComponentResources": [
-          "{Subscriptions}"
-        ],
-        "visualization": "table",
-        "gridSettings": {
-          "formatters": [
-            {
-              "columnMatch": "subscriptionId",
-              "formatter": 15,
-              "formatOptions": {
-                "linkTarget": "Resource"
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "items": [
+          {
+            "type": 1,
+            "content": {
+              "json": "<H2>Security Overview</H2>"
+            },
+            "conditionalVisibility": {
+              "parameterName": "selectedTab",
+              "comparison": "isEqualTo",
+              "value": "SecurityOverview"
+            },
+            "name": "text - 2"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let Subscriptions = dynamic([{Subscriptions}]);\r\nSecureScore_CL\r\n| parse ResourceId with \"/subscriptions/\" SubID \"/\" *\r\n| extend SubID = strcat(\"/subscriptions/\", SubID)\r\n| where SubID in (Subscriptions)\r\n| summarize arg_max(TimeGenerated, *) by ResourceId\r\n| extend CurrentScore = round(todouble(CurrentScore_s))\r\n| extend MaxScore = round(todouble(MaxScore_s))\r\n| extend sScore = round((CurrentScore/MaxScore)*100)\r\n| extend ScoreMessage = strcat(\"~\",CurrentScore, \" of \", MaxScore)\r\n| project SubscriptionId, ResourceId, Subscription_s, CurrentScore, MaxScore, ScoreMessage, sScore",
+              "size": 1,
+              "title": "Azure Security Center Secure Score",
+              "noDataMessage": "If no results here, you may need to check if you have implemented the method to export the secure score to the Log Analytics workspace you selected, or select the workspace from the drop down where you are collecting the secure score aggregates.",
+              "noDataMessageStyle": 2,
+              "timeContext": {
+                "durationMs": 86400000
+              },
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "crossComponentResources": [
+                "{Workspaces}"
+              ],
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "SubscriptionId",
+                    "formatter": 15,
+                    "formatOptions": {
+                      "linkTarget": "Resource"
+                    }
+                  },
+                  {
+                    "columnMatch": "ResourceId",
+                    "formatter": 5
+                  },
+                  {
+                    "columnMatch": "Subscription_s",
+                    "formatter": 5
+                  },
+                  {
+                    "columnMatch": "CurrentScore",
+                    "formatter": 5
+                  },
+                  {
+                    "columnMatch": "MaxScore",
+                    "formatter": 5
+                  },
+                  {
+                    "columnMatch": "sScore",
+                    "formatter": 18,
+                    "formatOptions": {
+                      "thresholdsOptions": "colors",
+                      "thresholdsGrid": [
+                        {
+                          "operator": "<",
+                          "thresholdValue": "50",
+                          "representation": "redBright",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "<",
+                          "thresholdValue": "70",
+                          "representation": "orange",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "<",
+                          "thresholdValue": "80",
+                          "representation": "yellow",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": ">",
+                          "thresholdValue": "80",
+                          "representation": "turquoise",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": ">",
+                          "thresholdValue": "90",
+                          "representation": "green",
+                          "text": "{0}{1}"
+                        },
+                        {
+                          "operator": "Default",
+                          "thresholdValue": null,
+                          "representation": "blue",
+                          "text": "{0}{1}"
+                        }
+                      ]
+                    },
+                    "numberFormat": {
+                      "unit": 1,
+                      "options": {
+                        "style": "decimal"
+                      }
+                    }
+                  }
+                ],
+                "labelSettings": [
+                  {
+                    "columnId": "SubscriptionId"
+                  },
+                  {
+                    "columnId": "ResourceId"
+                  },
+                  {
+                    "columnId": "Subscription_s"
+                  },
+                  {
+                    "columnId": "CurrentScore",
+                    "label": ""
+                  },
+                  {
+                    "columnId": "MaxScore",
+                    "label": ""
+                  },
+                  {
+                    "columnId": "ScoreMessage",
+                    "label": "Current Score"
+                  },
+                  {
+                    "columnId": "sScore",
+                    "label": "Secure Score"
+                  }
+                ]
               }
             },
-            {
-              "columnMatch": "sumHealth",
-              "formatter": 3,
-              "formatOptions": {
-                "palette": "green"
-              }
-            },
-            {
-              "columnMatch": "sumUnhealthy",
-              "formatter": 3,
-              "formatOptions": {
-                "palette": "red"
-              }
-            },
-            {
-              "columnMatch": "sScore",
-              "formatter": 2,
-              "formatOptions": {},
-              "numberFormat": {
-                "unit": 1,
-                "options": {
-                  "style": "decimal",
-                  "useGrouping": false
+            "customWidth": "50",
+            "showPin": true,
+            "name": "securescore",
+            "styleSettings": {
+              "margin": "1px",
+              "padding": "1px"
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "securityresources\r\n| where type contains \"microsoft.security/securitystatusessummaries\"\r\n| extend \r\n    Healthy = trim (' ', tostring(properties.resourceHealthSummary.healthy)),\r\n    Medium = trim (' ', tostring(properties.resourceHealthSummary.medium)),\r\n    High = trim (' ', tostring(properties.resourceHealthSummary.high)),\r\n    None = trim (' ', tostring(properties.resourceHealthSummary.none)),\r\n    Low = trim (' ', tostring(properties.resourceHealthSummary.low)),\r\n    ResourceCount = trim (' ', tostring(properties.resourceCount))\r\n| extend Healthy = toint(iif(isnotempty(Healthy), Healthy, '0'))\r\n| extend Medium = toint(iif(isnotempty(Medium), Medium, '0'))\r\n| extend High = toint(iif(isnotempty(High), High, '0'))\r\n| extend None = toint(iif(isnotempty(None), None, '0'))\r\n| extend Low = toint(iif(isnotempty(Low), Low, '0'))\r\n| project subscriptionId, name, ResourceCount, Healthy, Medium, High, Low, None\r\n| summarize sumHealth = sum(Healthy), sumMedium = sum(Medium), sumHigh = sum(High), sumLow = sum(Low), sumNone = sum(None) by subscriptionId\r\n| extend sumAll = (todouble(sumHealth) + todouble(sumMedium) + todouble(sumHigh) + todouble(sumLow))\r\n| extend sumUnhealthy = (todouble(sumMedium) + todouble(sumHigh) + todouble(sumLow))\r\n| project subscriptionId, sumHealth, sumUnhealthy",
+              "size": 1,
+              "title": "Security Health Overview",
+              "queryType": 1,
+              "resourceType": "microsoft.resourcegraph/resources",
+              "crossComponentResources": [
+                "{Subscriptions}"
+              ],
+              "visualization": "table",
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "subscriptionId",
+                    "formatter": 15,
+                    "formatOptions": {
+                      "linkTarget": "Resource"
+                    }
+                  },
+                  {
+                    "columnMatch": "sumHealth",
+                    "formatter": 3,
+                    "formatOptions": {
+                      "palette": "green"
+                    }
+                  },
+                  {
+                    "columnMatch": "sumUnhealthy",
+                    "formatter": 3,
+                    "formatOptions": {
+                      "palette": "red"
+                    }
+                  }
+                ],
+                "labelSettings": [
+                  {
+                    "columnId": "subscriptionId",
+                    "label": "Subscription"
+                  },
+                  {
+                    "columnId": "sumHealth",
+                    "label": "Healthy Resources"
+                  },
+                  {
+                    "columnId": "sumUnhealthy",
+                    "label": "Unhealthy Resources"
+                  }
+                ]
+              },
+              "sortBy": [],
+              "tileSettings": {
+                "showBorder": false,
+                "titleContent": {
+                  "columnMatch": "subscriptionId",
+                  "formatter": 1
+                },
+                "leftContent": {
+                  "columnMatch": "sumHealth",
+                  "formatter": 12,
+                  "formatOptions": {
+                    "palette": "auto"
+                  },
+                  "numberFormat": {
+                    "unit": 17,
+                    "options": {
+                      "maximumSignificantDigits": 3,
+                      "maximumFractionDigits": 2
+                    }
+                  }
                 }
               }
-            }
-          ],
-          "sortBy": [
-            {
-              "itemKey": "$gen_number_sScore_3",
-              "sortOrder": 2
-            }
-          ],
-          "labelSettings": [
-            {
-              "columnId": "subscriptionId",
-              "label": "Subscription"
             },
-            {
-              "columnId": "sumHealth",
-              "label": "Healthy Resources"
+            "customWidth": "50",
+            "conditionalVisibility": {
+              "parameterName": "selectedTab",
+              "comparison": "isEqualTo",
+              "value": "SecurityOverview"
             },
-            {
-              "columnId": "sumUnhealthy",
-              "label": "Unhealthy Resources"
-            },
-            {
-              "columnId": "sScore",
-              "label": "Health Score",
-              "comment": "This is an estimation of your secure score (may vary by a %)"
+            "showPin": true,
+            "name": "secoverview",
+            "styleSettings": {
+              "margin": "1px",
+              "padding": "1px"
             }
-          ]
-        },
-        "sortBy": [
+          },
           {
-            "itemKey": "$gen_number_sScore_3",
-            "sortOrder": 2
-          }
-        ],
-        "tileSettings": {
-          "showBorder": false,
-          "titleContent": {
-            "columnMatch": "subscriptionId",
-            "formatter": 1
-          },
-          "leftContent": {
-            "columnMatch": "sumHealth",
-            "formatter": 12,
-            "formatOptions": {
-              "palette": "auto"
-            },
-            "numberFormat": {
-              "unit": 17,
-              "options": {
-                "maximumSignificantDigits": 3,
-                "maximumFractionDigits": 2
-              }
-            }
-          }
-        }
-      },
-      "conditionalVisibility": {
-        "parameterName": "selectedTab",
-        "comparison": "isEqualTo",
-        "value": "SecurityOverview"
-      },
-      "showPin": true,
-      "name": "secoverview"
-    },
-    {
-      "type": 3,
-      "content": {
-        "version": "KqlItem/1.0",
-        "query": "SecurityAlert\r\n| summarize Count = count() by AlertSeverity, ProductName\r\n| join kind = inner (SecurityAlert\r\n | make-series Trend = count() default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by AlertSeverity)\r\n on AlertSeverity\r\n | project-away TimeGenerated\r\n| extend AlertSeveritys = AlertSeverity\r\n| union (\r\n SecurityAlert \r\n | summarize Count = count() \r\n | extend jkey = 1\r\n | join kind=inner (SecurityAlert\r\n | make-series Trend = count() default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain}\r\n | extend jkey = 1) on jkey\r\n | extend AlertSeverity = 'All', AlertSeveritys = '*' \r\n)\r\n| extend Severity = iif(AlertSeverity == \"All\", 0,iif(AlertSeverity == \"High\", 1, iif(AlertSeverity == \"Medium\", 2, iif(AlertSeverity == \"Low\", 3, 4))))\r\n| order by ProductName asc, Severity asc\r\n",
-        "size": 4,
-        "title": "Security Alerts by Severity",
-        "timeContext": {
-          "durationMs": 0
-        },
-        "timeContextFromParameter": "TimeRange",
-        "queryType": 0,
-        "resourceType": "microsoft.operationalinsights/workspaces",
-        "crossComponentResources": [
-          "{Workspaces}"
-        ],
-        "visualization": "tiles",
-        "tileSettings": {
-          "titleContent": {
-            "columnMatch": "AlertSeverity",
-            "formatter": 1,
-            "formatOptions": {
-              "showIcon": true
-            }
-          },
-          "subtitleContent": {
-            "columnMatch": "ProductName",
-            "formatter": 1,
-            "formatOptions": {
-              "showIcon": true
-            }
-          },
-          "leftContent": {
-            "columnMatch": "Count",
-            "formatter": 12,
-            "formatOptions": {
-              "showIcon": true
-            },
-            "numberFormat": {
-              "unit": 17,
-              "options": {
-                "style": "decimal",
-                "useGrouping": false,
-                "maximumFractionDigits": 2,
-                "maximumSignificantDigits": 3
-              }
-            }
-          },
-          "secondaryContent": {
-            "columnMatch": "Trend",
-            "formatter": 9,
-            "formatOptions": {
-              "palette": "gray",
-              "showIcon": true
-            }
-          },
-          "showBorder": false
-        }
-      },
-      "conditionalVisibility": {
-        "parameterName": "selectedTab",
-        "comparison": "isEqualTo",
-        "value": "SecurityOverview"
-      },
-      "showPin": true,
-      "name": "securityeventsbysev"
-    },
-    {
-      "type": 3,
-      "content": {
-        "version": "KqlItem/1.0",
-        "query": "SecurityRecommendation\r\n| where RecommendationState == \"Unhealthy\"\r\n| summarize count() by RecommendationSeverity, RecommendationState\r\n| extend SortOrder = iff(RecommendationSeverity==\"High\", 3, iff(RecommendationSeverity==\"Medium\", 2, iif(RecommendationSeverity==\"Low\", 1, 0)))\r\n| order by SortOrder desc ",
-        "size": 4,
-        "title": "Security Recommendation Summary",
-        "noDataMessage": "No Recommendations detected. Please ensure that you have enabled continuous export of your recommendations in Azure Security Center",
-        "noDataMessageStyle": 4,
-        "timeContext": {
-          "durationMs": 0
-        },
-        "timeContextFromParameter": "TimeRange",
-        "queryType": 0,
-        "resourceType": "microsoft.operationalinsights/workspaces",
-        "crossComponentResources": [
-          "{Workspaces}"
-        ],
-        "visualization": "tiles",
-        "tileSettings": {
-          "titleContent": {
-            "formatter": 1,
-            "formatOptions": {
-              "showIcon": true
-            }
-          },
-          "leftContent": {
-            "columnMatch": "count_",
-            "formatter": 12,
-            "formatOptions": {
-              "showIcon": true
-            }
-          },
-          "secondaryContent": {
-            "columnMatch": "SortOrder",
-            "formatter": 11,
-            "formatOptions": {
-              "showIcon": true
-            }
-          },
-          "showBorder": false
-        },
-        "graphSettings": {
-          "type": 0,
-          "topContent": {
-            "columnMatch": "RecommendationSeverity",
-            "formatter": 1,
-            "formatOptions": {
-              "showIcon": true
-            }
-          },
-          "centerContent": {
-            "columnMatch": "count_",
-            "formatter": 1,
-            "formatOptions": {
-              "showIcon": true
-            },
-            "numberFormat": {
-              "unit": 17,
-              "options": {
-                "maximumSignificantDigits": 3,
-                "maximumFractionDigits": 2
-              }
-            }
-          },
-          "bottomContent": {
-            "columnMatch": "RecommendationState",
-            "formatOptions": {
-              "showIcon": true
-            }
-          },
-          "nodeIdField": "RecommendationState",
-          "edgeLabel": "RecommendationState",
-          "nodeSize": null,
-          "staticNodeSize": 100,
-          "colorSettings": {
-            "nodeColorField": "SortOrder",
-            "type": 4,
-            "heatmapPalette": "hotCold",
-            "heatmapMin": null,
-            "heatmapMax": null
-          },
-          "groupByField": "RecommendationState",
-          "hivesMargin": 5
-        }
-      },
-      "conditionalVisibility": {
-        "parameterName": "selectedTab",
-        "comparison": "isEqualTo",
-        "value": "SecurityOverview"
-      },
-      "name": "securityrecommendationcount"
-    },
-    {
-      "type": 3,
-      "content": {
-        "version": "KqlItem/1.0",
-        "query": "securityresources\r\n| where type == \"microsoft.security/regulatorycompliancestandards\"\r\n| extend \r\n\tpassedControls = trim (' ', tostring(properties.passedControls)), \r\n\tfailedControls = trim(' ',tostring(properties.failedControls)), \r\n\tstate \t\t   = trim(' ', tostring(properties.state)), \r\n\tunsupportedControls = trim(' ', tostring(properties.unsupportedControls)), \r\n\tskippedControls     = trim(' ', tostring(properties.skippedControls))\r\n| project subscriptionId, name, passedControls, failedControls, unsupportedControls, skippedControls ,  link = \"https://portal.azure.com/?feature.customportal=false#blade/Microsoft_Azure_Security/SecurityMenuBlade/22\"\r\n| order by passedControls desc",
-        "size": 0,
-        "title": "Regulatory Compliance",
-        "queryType": 1,
-        "resourceType": "microsoft.resourcegraph/resources",
-        "crossComponentResources": [
-          "{Subscriptions}"
-        ],
-        "gridSettings": {
-          "formatters": [
-            {
-              "columnMatch": "name",
-              "formatter": 1,
-              "formatOptions": {
-                "linkColumn": "link",
-                "linkTarget": "CellDetails",
-                "linkIsContextBlade": false
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "SecurityAlert\r\n| summarize Count = count() by AlertSeverity, ProductName\r\n| join kind = inner (SecurityAlert\r\n | make-series Trend = count() default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by AlertSeverity)\r\n on AlertSeverity\r\n | project-away TimeGenerated\r\n| extend AlertSeveritys = AlertSeverity\r\n| union (\r\n SecurityAlert \r\n | summarize Count = count() \r\n | extend jkey = 1\r\n | join kind=inner (SecurityAlert\r\n | make-series Trend = count() default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain}\r\n | extend jkey = 1) on jkey\r\n | extend AlertSeverity = 'All', AlertSeveritys = '*' \r\n)\r\n| extend Severity = iif(AlertSeverity == \"All\", 0,iif(AlertSeverity == \"High\", 1, iif(AlertSeverity == \"Medium\", 2, iif(AlertSeverity == \"Low\", 3, 4))))\r\n| order by ProductName asc, Severity asc\r\n",
+              "size": 4,
+              "title": "Security Alerts by Severity",
+              "timeContext": {
+                "durationMs": 604800000
+              },
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "crossComponentResources": [
+                "{Workspaces}"
+              ],
+              "visualization": "tiles",
+              "tileSettings": {
+                "titleContent": {
+                  "columnMatch": "AlertSeverity",
+                  "formatter": 1,
+                  "formatOptions": {
+                    "showIcon": true
+                  }
+                },
+                "subtitleContent": {
+                  "columnMatch": "ProductName",
+                  "formatter": 1,
+                  "formatOptions": {
+                    "showIcon": true
+                  }
+                },
+                "leftContent": {
+                  "columnMatch": "Count",
+                  "formatter": 12,
+                  "formatOptions": {
+                    "showIcon": true
+                  },
+                  "numberFormat": {
+                    "unit": 17,
+                    "options": {
+                      "style": "decimal",
+                      "useGrouping": false,
+                      "maximumFractionDigits": 2,
+                      "maximumSignificantDigits": 3
+                    }
+                  }
+                },
+                "secondaryContent": {
+                  "columnMatch": "Trend",
+                  "formatter": 9,
+                  "formatOptions": {
+                    "palette": "gray",
+                    "showIcon": true
+                  }
+                },
+                "showBorder": false
               }
             },
-            {
-              "columnMatch": "passedControls",
-              "formatter": 3,
-              "formatOptions": {
-                "palette": "green"
-              }
+            "conditionalVisibility": {
+              "parameterName": "selectedTab",
+              "comparison": "isEqualTo",
+              "value": "SecurityOverview"
             },
-            {
-              "columnMatch": "failedControls",
-              "formatter": 3,
-              "formatOptions": {
-                "palette": "red"
-              }
-            },
-            {
-              "columnMatch": "subscriptionId",
-              "formatter": 15,
-              "formatOptions": {
-                "linkTarget": "Resource"
-              }
-            },
-            {
-              "columnMatch": "link",
-              "formatter": 5,
-              "formatOptions": {}
-            }
-          ],
-          "sortBy": [
-            {
-              "itemKey": "$gen_link_name_1",
-              "sortOrder": 1
-            }
-          ],
-          "labelSettings": [
-            {
-              "columnId": "subscriptionId",
-              "label": "Subscription"
-            },
-            {
-              "columnId": "name",
-              "label": "Compliance Standard"
-            },
-            {
-              "columnId": "passedControls",
-              "label": "Passed Controls"
-            },
-            {
-              "columnId": "failedControls",
-              "label": "Failed Controls"
-            },
-            {
-              "columnId": "unsupportedControls",
-              "label": "Unsupported Controls"
-            },
-            {
-              "columnId": "skippedControls",
-              "label": "Skipped Controls"
-            }
-          ]
-        },
-        "sortBy": [
+            "showPin": true,
+            "name": "securityeventsbysev"
+          },
           {
-            "itemKey": "$gen_link_name_1",
-            "sortOrder": 1
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "SecurityRecommendation\r\n| where RecommendationState == \"Unhealthy\"\r\n| summarize count() by RecommendationSeverity, RecommendationState\r\n| extend SortOrder = iff(RecommendationSeverity==\"High\", 3, iff(RecommendationSeverity==\"Medium\", 2, iif(RecommendationSeverity==\"Low\", 1, 0)))\r\n| order by SortOrder desc ",
+              "size": 4,
+              "title": "Security Recommendation Summary",
+              "noDataMessage": "No Recommendations detected. Please ensure that you have enabled continuous export of your recommendations in Azure Security Center",
+              "noDataMessageStyle": 4,
+              "timeContext": {
+                "durationMs": 604800000
+              },
+              "timeContextFromParameter": "TimeRange",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "crossComponentResources": [
+                "{Workspaces}"
+              ],
+              "visualization": "tiles",
+              "tileSettings": {
+                "titleContent": {
+                  "formatter": 1,
+                  "formatOptions": {
+                    "showIcon": true
+                  }
+                },
+                "leftContent": {
+                  "columnMatch": "count_",
+                  "formatter": 12,
+                  "formatOptions": {
+                    "showIcon": true
+                  }
+                },
+                "secondaryContent": {
+                  "columnMatch": "SortOrder",
+                  "formatter": 11,
+                  "formatOptions": {
+                    "showIcon": true
+                  }
+                },
+                "showBorder": false
+              },
+              "graphSettings": {
+                "type": 0,
+                "topContent": {
+                  "columnMatch": "RecommendationSeverity",
+                  "formatter": 1,
+                  "formatOptions": {
+                    "showIcon": true
+                  }
+                },
+                "centerContent": {
+                  "columnMatch": "count_",
+                  "formatter": 1,
+                  "formatOptions": {
+                    "showIcon": true
+                  },
+                  "numberFormat": {
+                    "unit": 17,
+                    "options": {
+                      "maximumSignificantDigits": 3,
+                      "maximumFractionDigits": 2
+                    }
+                  }
+                },
+                "bottomContent": {
+                  "columnMatch": "RecommendationState",
+                  "formatOptions": {
+                    "showIcon": true
+                  }
+                },
+                "nodeIdField": "RecommendationState",
+                "edgeLabel": "RecommendationState",
+                "nodeSize": null,
+                "staticNodeSize": 100,
+                "colorSettings": {
+                  "nodeColorField": "SortOrder",
+                  "type": 4,
+                  "heatmapPalette": "hotCold",
+                  "heatmapMin": null,
+                  "heatmapMax": null
+                },
+                "groupByField": "RecommendationState",
+                "hivesMargin": 5
+              }
+            },
+            "conditionalVisibility": {
+              "parameterName": "selectedTab",
+              "comparison": "isEqualTo",
+              "value": "SecurityOverview"
+            },
+            "name": "securityrecommendationcount"
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "securityresources\r\n| where type == \"microsoft.security/regulatorycompliancestandards\"\r\n| extend \r\n\tpassedControls = trim (' ', tostring(properties.passedControls)), \r\n\tfailedControls = trim(' ',tostring(properties.failedControls)), \r\n\tstate \t\t   = trim(' ', tostring(properties.state)), \r\n\tunsupportedControls = trim(' ', tostring(properties.unsupportedControls)), \r\n\tskippedControls     = trim(' ', tostring(properties.skippedControls))\r\n| project subscriptionId, name, passedControls, failedControls, unsupportedControls, skippedControls ,  link = \"https://portal.azure.com/?feature.customportal=false#blade/Microsoft_Azure_Security/SecurityMenuBlade/22\"\r\n| order by passedControls desc",
+              "size": 0,
+              "title": "Regulatory Compliance",
+              "queryType": 1,
+              "resourceType": "microsoft.resourcegraph/resources",
+              "crossComponentResources": [
+                "{Subscriptions}"
+              ],
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "name",
+                    "formatter": 1,
+                    "formatOptions": {
+                      "linkColumn": "link",
+                      "linkTarget": "CellDetails",
+                      "linkIsContextBlade": false
+                    }
+                  },
+                  {
+                    "columnMatch": "passedControls",
+                    "formatter": 3,
+                    "formatOptions": {
+                      "palette": "green"
+                    }
+                  },
+                  {
+                    "columnMatch": "failedControls",
+                    "formatter": 3,
+                    "formatOptions": {
+                      "palette": "red"
+                    }
+                  },
+                  {
+                    "columnMatch": "subscriptionId",
+                    "formatter": 15,
+                    "formatOptions": {
+                      "linkTarget": "Resource"
+                    }
+                  },
+                  {
+                    "columnMatch": "link",
+                    "formatter": 5,
+                    "formatOptions": {}
+                  }
+                ],
+                "sortBy": [
+                  {
+                    "itemKey": "$gen_link_name_1",
+                    "sortOrder": 1
+                  }
+                ],
+                "labelSettings": [
+                  {
+                    "columnId": "subscriptionId",
+                    "label": "Subscription"
+                  },
+                  {
+                    "columnId": "name",
+                    "label": "Compliance Standard"
+                  },
+                  {
+                    "columnId": "passedControls",
+                    "label": "Passed Controls"
+                  },
+                  {
+                    "columnId": "failedControls",
+                    "label": "Failed Controls"
+                  },
+                  {
+                    "columnId": "unsupportedControls",
+                    "label": "Unsupported Controls"
+                  },
+                  {
+                    "columnId": "skippedControls",
+                    "label": "Skipped Controls"
+                  }
+                ]
+              },
+              "sortBy": [
+                {
+                  "itemKey": "$gen_link_name_1",
+                  "sortOrder": 1
+                }
+              ]
+            },
+            "conditionalVisibility": {
+              "parameterName": "selectedTab",
+              "comparison": "isEqualTo",
+              "value": "SecurityOverview"
+            },
+            "showPin": true,
+            "name": "ascregcompliance"
           }
         ]
       },
@@ -568,8 +710,7 @@
         "comparison": "isEqualTo",
         "value": "SecurityOverview"
       },
-      "showPin": true,
-      "name": "ascregcompliance"
+      "name": "SecurityOverview"
     },
     {
       "type": 1,
@@ -641,7 +782,7 @@
               "size": 0,
               "showAnalytics": true,
               "timeContext": {
-                "durationMs": 0
+                "durationMs": 604800000
               },
               "timeContextFromParameter": "TimeRange",
               "showExportToExcel": true,
@@ -656,8 +797,7 @@
                     "columnMatch": "AlertName",
                     "formatter": 7,
                     "formatOptions": {
-                      "linkTarget": "GenericDetails",
-                      "linkIsContextBlade": true,
+                      "linkTarget": "WorkbookTemplate",
                       "workbookContext": null
                     }
                   },
@@ -762,7 +902,7 @@
         "title": "Security Alerts Trend",
         "noDataMessage": "No Security Alerts in Sentinel in this time range",
         "timeContext": {
-          "durationMs": 0
+          "durationMs": 604800000
         },
         "timeContextFromParameter": "TimeRange",
         "queryType": 0,
@@ -937,7 +1077,7 @@
               "title": "Security Recommendations",
               "noDataMessage": "No Recommendations in the selected time period",
               "timeContext": {
-                "durationMs": 0
+                "durationMs": 604800000
               },
               "timeContextFromParameter": "TimeRange",
               "showExportToExcel": true,
@@ -1046,7 +1186,7 @@
         "title": "Security Event Anomalies",
         "noDataMessage": "No Security Events in this time range in Azure Sentinel",
         "timeContext": {
-          "durationMs": 0
+          "durationMs": 604800000
         },
         "timeContextFromParameter": "TimeRange",
         "queryType": 0,
@@ -1067,13 +1207,13 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "SecurityDetection\r\n| summarize DetectCount = count() by Computer, AlertTitle, Description, Provider, RemediationSteps\r\n//| extend AdditionalInfo = strcat(\"Description: \", Description, \"<br>Remediation Steps: \", RemediationSteps)",
+        "query": "SecurityDetection\r\n| summarize DetectCount = count() by Computer, AlertTitle, Description, Provider, RemediationSteps\r\n| extend AdditionalInfo = strcat(\"Description: \", Description, \"<br>Remediation Steps: \", RemediationSteps)",
         "size": 0,
         "showAnalytics": true,
         "title": "Threat Detections",
         "noDataMessage": "No threats detected or ATP not configured",
         "timeContext": {
-          "durationMs": 0
+          "durationMs": 604800000
         },
         "timeContextFromParameter": "TimeRange",
         "showExportToExcel": true,
@@ -1089,7 +1229,7 @@
               "columnMatch": "AlertTitle",
               "formatter": 1,
               "formatOptions": {
-                "linkColumn": "AlertTitle",
+                "linkColumn": "AdditionalInfo",
                 "linkTarget": "GenericDetails",
                 "linkIsContextBlade": true
               }
@@ -1134,6 +1274,9 @@
             {
               "columnId": "DetectCount",
               "label": "Detections"
+            },
+            {
+              "columnId": "AdditionalInfo"
             }
           ]
         }
@@ -1166,7 +1309,7 @@
         "size": 0,
         "title": "Antimalware Protection Status",
         "timeContext": {
-          "durationMs": 0
+          "durationMs": 604800000
         },
         "timeContextFromParameter": "TimeRange",
         "queryType": 0,
@@ -1197,7 +1340,7 @@
         "showAnalytics": true,
         "title": "Antimalware Protection Status",
         "timeContext": {
-          "durationMs": 0
+          "durationMs": 604800000
         },
         "timeContextFromParameter": "TimeRange",
         "showExportToExcel": true,
@@ -1223,7 +1366,7 @@
         "size": 0,
         "title": "Windows Update Compliance",
         "timeContext": {
-          "durationMs": 0
+          "durationMs": 604800000
         },
         "timeContextFromParameter": "TimeRange",
         "queryType": 0,
@@ -1253,7 +1396,7 @@
         "size": 0,
         "title": "Linux Computer Compliance",
         "timeContext": {
-          "durationMs": 0
+          "durationMs": 604800000
         },
         "timeContextFromParameter": "TimeRange",
         "queryType": 0,
@@ -1284,7 +1427,7 @@
         "showAnalytics": true,
         "title": "Windows Update Compliance Summary",
         "timeContext": {
-          "durationMs": 0
+          "durationMs": 604800000
         },
         "timeContextFromParameter": "TimeRange",
         "showExportToExcel": true,
@@ -1352,7 +1495,7 @@
         "showAnalytics": true,
         "title": "Linux Update Compliance Status",
         "timeContext": {
-          "durationMs": 0
+          "durationMs": 604800000
         },
         "timeContextFromParameter": "TimeRange",
         "showExportToExcel": true,
@@ -1419,7 +1562,7 @@
         "title": "Activity Log Summary",
         "noDataMessage": "No activity log entries found in the selected time range",
         "timeContext": {
-          "durationMs": 0
+          "durationMs": 604800000
         },
         "timeContextFromParameter": "TimeRange",
         "queryType": 0,
@@ -1505,7 +1648,7 @@
         "size": 1,
         "title": "Activity Log Activities over time",
         "timeContext": {
-          "durationMs": 0
+          "durationMs": 604800000
         },
         "timeContextFromParameter": "TimeRange",
         "queryType": 0,
@@ -1531,7 +1674,7 @@
         "size": 0,
         "title": "Activities over Time",
         "timeContext": {
-          "durationMs": 0
+          "durationMs": 604800000
         },
         "timeContextFromParameter": "TimeRange",
         "queryType": 0,
@@ -1581,7 +1724,7 @@
         "size": 1,
         "title": "Resource providers producing activity logs",
         "timeContext": {
-          "durationMs": 0
+          "durationMs": 604800000
         },
         "timeContextFromParameter": "TimeRange",
         "queryType": 0,
@@ -1643,7 +1786,7 @@
         "showAnalytics": true,
         "title": "Top 10 Resource Providers",
         "timeContext": {
-          "durationMs": 0
+          "durationMs": 604800000
         },
         "timeContextFromParameter": "TimeRange",
         "showExportToExcel": true,
@@ -1692,7 +1835,7 @@
         "showAnalytics": true,
         "title": "Failures in Activity Log",
         "timeContext": {
-          "durationMs": 0
+          "durationMs": 604800000
         },
         "timeContextFromParameter": "TimeRange",
         "showExportToExcel": true,
@@ -2098,7 +2241,7 @@
         "size": 0,
         "title": "Keyvault Activity over time",
         "timeContext": {
-          "durationMs": 0
+          "durationMs": 604800000
         },
         "timeContextFromParameter": "TimeRange",
         "queryType": 0,
@@ -2132,7 +2275,7 @@
         "showAnalytics": true,
         "title": "Calls to Keyvault",
         "timeContext": {
-          "durationMs": 0
+          "durationMs": 604800000
         },
         "timeContextFromParameter": "TimeRange",
         "showExportToExcel": true,
@@ -2179,7 +2322,7 @@
         "title": "Failed Keyvault requests by status code",
         "noDataMessage": "No failures detected in the selected time range",
         "timeContext": {
-          "durationMs": 0
+          "durationMs": 604800000
         },
         "timeContextFromParameter": "TimeRange",
         "showExportToExcel": true,
@@ -2218,7 +2361,7 @@
         "title": "Application Gateway Failed Requests per hour",
         "noDataMessage": "No failures detected in the selected time range",
         "timeContext": {
-          "durationMs": 0
+          "durationMs": 604800000
         },
         "timeContextFromParameter": "TimeRange",
         "queryType": 0,
@@ -2246,7 +2389,7 @@
         "title": "Application Gateway Errors by User Agent",
         "noDataMessage": "No failures detected in the specified time range",
         "timeContext": {
-          "durationMs": 0
+          "durationMs": 604800000
         },
         "timeContextFromParameter": "TimeRange",
         "showExportToExcel": true,
