@@ -118,12 +118,12 @@
           "$connections": {
             "value": {
               "office365": {
-                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', 'westeurope', '/managedApis/', 'office365')]",
+                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', 'parameters('LogicAppLocation')', '/managedApis/', 'office365')]",
                 "connectionId": "[resourceId('Microsoft.Web/connections', parameters('office365_1_Connection_Name'))]",
                 "connectionName": "[parameters('office365_1_Connection_Name')]"
               },
               "azuresentinel": {
-                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', 'westeurope', '/managedApis/', 'azuresentinel')]",
+                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', 'parameters('LogicAppLocation')', '/managedApis/', 'azuresentinel')]",
                 "connectionId": "[resourceId('Microsoft.Web/connections', parameters('azuresentinel_1_Connection_Name'))]",
                 "connectionName": "[parameters('azuresentinel_1_Connection_Name')]"
               }
@@ -147,10 +147,10 @@
       "type": "MICROSOFT.WEB/CONNECTIONS",
       "apiVersion": "2018-07-01-preview",
       "name": "[parameters('office365_1_Connection_Name')]",
-      "location": "westeurope",
+      "location": "[parameters('LogicAppLocation')]",
       "properties": {
         "api": {
-          "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', 'westeurope', '/managedApis/', 'office365')]"
+          "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', 'parameters('LogicAppLocation')', '/managedApis/', 'office365')]"
         },
         "displayName": "[parameters('office365_1_Connection_DisplayName')]"
       }
@@ -159,10 +159,10 @@
       "type": "MICROSOFT.WEB/CONNECTIONS",
       "apiVersion": "2018-07-01-preview",
       "name": "[parameters('azuresentinel_1_Connection_Name')]",
-      "location": "westeurope",
+      "location": "[parameters('LogicAppLocation')]",
       "properties": {
         "api": {
-          "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', 'westeurope', '/managedApis/', 'azuresentinel')]"
+          "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', 'parameters('LogicAppLocation')', '/managedApis/', 'azuresentinel')]"
         },
         "displayName": "[parameters('azuresentinel_1_Connection_DisplayName')]"
       }
