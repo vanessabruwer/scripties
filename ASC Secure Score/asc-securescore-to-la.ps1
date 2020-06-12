@@ -148,7 +148,7 @@ $SubscriptionName = $azureContext.Subscription.Name
 $json = ''
 
 # Get Secure Score
-{
+
     $SecureScores = Get-SecureScore -SubscriptionId $SubscriptionId
     foreach ($SecureScore in $SecureScores)
     {
@@ -158,7 +158,7 @@ $json = ''
 "@
     }
  
-}
+
 
 # Wrap in an array
 $json = "[$json]"
