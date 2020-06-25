@@ -153,12 +153,12 @@ $json = ''
     foreach ($SecureScore in $SecureScores)
     {
 
+write-output $SecureScore.properties.displayName
+
          $json += @"
 { "SubscriptionId":"$SubscriptionId", "Subscription":"$SubscriptionName", "ResourceID":"$($SecureScore.id)", "Name":"$($SecureScore.name)", "DisplayName":"$($SecureScore.properties.displayName)","CurrentScore":"$($SecureScore.properties.score.current)","MaxScore":"$($SecureScore.properties.score.max)","Type":"$($SecureScore.type)"  },
 "@
     }
- 
- }
 
 
 # Wrap in an array
