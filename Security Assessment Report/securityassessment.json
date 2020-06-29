@@ -32,7 +32,9 @@
             "value": [
               "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765",
               "/subscriptions/5733bcb3-7fde-4caf-8629-41dc15e3b352",
-              "/subscriptions/b34fa96b-796e-4888-8764-bc27825098a7"
+              "/subscriptions/b34fa96b-796e-4888-8764-bc27825098a7",
+              "/subscriptions/5044ad67-cc18-4153-be7e-cefd01e28625",
+              "/subscriptions/7b76bfbc-cb1e-4df1-b6e8-b826eef6c592"
             ],
             "typeSettings": {
               "additionalResourceOptions": [
@@ -55,7 +57,7 @@
               "{Subscriptions}"
             ],
             "value": [
-              "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765/resourceGroups/northwind-vb/providers/Microsoft.OperationalInsights/workspaces/NW-LA-Demo"
+              "value::all"
             ],
             "typeSettings": {
               "additionalResourceOptions": [
@@ -230,14 +232,15 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "let Subscriptions = dynamic([{Subscriptions}]);\r\nSecureScore_CL\r\n| parse ResourceId with \"/subscriptions/\" SubID \"/\" *\r\n| extend SubID = strcat(\"/subscriptions/\", SubID)\r\n| where SubID in (Subscriptions)\r\n| summarize arg_max(TimeGenerated, *) by ResourceId\r\n| extend CurrentScore = round(todouble(CurrentScore_s))\r\n| extend MaxScore = round(todouble(MaxScore_s))\r\n| extend sScore = round((CurrentScore/MaxScore)*100)\r\n| extend ScoreMessage = strcat(\"~\",CurrentScore, \" of \", MaxScore)\r\n| project SubscriptionId, ResourceId, Subscription_s, CurrentScore, MaxScore, ScoreMessage, sScore",
+              "query": "let Subscriptions = dynamic([{Subscriptions}]);\r\nSecureScore_CL \r\n| parse ResourceId with \"/subscriptions/\" SubID \"/\" *\r\n| extend SubID = strcat(\"/subscriptions/\", SubID)\r\n| where SubID in (Subscriptions)\r\n| join kind=inner (SecureScore_CL\r\n| extend CurrentScore = round(todouble(CurrentScore_s))\r\n| extend MaxScore = round(todouble(MaxScore_s))\r\n| extend sScoreT = round((CurrentScore/MaxScore)*100)\r\n| make-series Trend = avg(sScoreT) default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by SubscriptionId\r\n| project SubscriptionId, Trend) on SubscriptionId\r\n| summarize arg_max(TimeGenerated, *) by ResourceId\r\n| extend CurrentScore = round(todouble(CurrentScore_s))\r\n| extend MaxScore = round(todouble(MaxScore_s))\r\n| extend sScore = round((CurrentScore/MaxScore)*100)\r\n| extend ScoreMessage = strcat(\"~\",CurrentScore, \" of \", MaxScore)\r\n| project SubscriptionId, ResourceId, Subscription_s, CurrentScore, MaxScore, ScoreMessage, sScore, Trend",
               "size": 1,
               "title": "Azure Security Center Secure Score",
               "noDataMessage": "If no results here, you may need to check if you have implemented the method to export the secure score to the Log Analytics workspace you selected, or select the workspace from the drop down where you are collecting the secure score aggregates.",
               "noDataMessageStyle": 2,
               "timeContext": {
-                "durationMs": 86400000
+                "durationMs": 604800000
               },
+              "timeContextFromParameter": "TimeRange",
               "queryType": 0,
               "resourceType": "microsoft.operationalinsights/workspaces",
               "crossComponentResources": [
@@ -317,6 +320,13 @@
                       "options": {
                         "style": "decimal"
                       }
+                    }
+                  },
+                  {
+                    "columnMatch": "Trend",
+                    "formatter": 9,
+                    "formatOptions": {
+                      "palette": "gray"
                     }
                   }
                 ],
@@ -782,7 +792,7 @@
               "size": 0,
               "showAnalytics": true,
               "timeContext": {
-                "durationMs": 604800000
+                "durationMs": 0
               },
               "timeContextFromParameter": "TimeRange",
               "showExportToExcel": true,
@@ -797,8 +807,8 @@
                     "columnMatch": "AlertName",
                     "formatter": 7,
                     "formatOptions": {
-                      "linkTarget": "WorkbookTemplate",
-                      "workbookContext": null
+                      "linkTarget": "GenericDetails",
+                      "linkIsContextBlade": true
                     }
                   },
                   {
@@ -842,18 +852,15 @@
                   },
                   {
                     "columnMatch": "ProductName",
-                    "formatter": 5,
-                    "formatOptions": {}
+                    "formatter": 5
                   },
                   {
                     "columnMatch": "Description",
-                    "formatter": 5,
-                    "formatOptions": {}
+                    "formatter": 5
                   },
                   {
                     "columnMatch": "RemediationSteps",
-                    "formatter": 5,
-                    "formatOptions": {}
+                    "formatter": 5
                   },
                   {
                     "columnMatch": "CountofAlerts",
@@ -867,8 +874,7 @@
                     "formatter": 5,
                     "formatOptions": {
                       "linkTarget": "WorkbookTemplate",
-                      "linkIsContextBlade": false,
-                      "workbookContext": null
+                      "linkIsContextBlade": false
                     }
                   }
                 ],
@@ -2406,6 +2412,9 @@
       },
       "name": "appgwfailuresbyuseragent"
     }
+  ],
+  "fallbackResourceIds": [
+    "Azure Monitor"
   ],
   "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
 }
