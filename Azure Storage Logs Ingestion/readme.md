@@ -18,7 +18,7 @@ All data will be written into the AzureStorage_CL custom log.
 I have also included a workbook for data visualisation.
 
 
-
+My colleague, [Charles Boudry](https://github.com/chboudry/scripties/tree/master/Azure%20Storage%20Logs%20Ingestion), has provided an updated version of the script that also caters for Storage v2.
 
 
 
