@@ -6,7 +6,7 @@
       "content": {
         "json": "# Update Management"
       },
-      "name": "text - 1"
+      "name": "Heading"
     },
     {
       "type": 9,
@@ -36,9 +36,7 @@
             },
             "queryType": 1,
             "resourceType": "microsoft.resourcegraph/resources",
-            "value": [
-              "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765"
-            ]
+            "value": []
           },
           {
             "id": "8df9c309-e7d1-43ad-b2ad-2d190c0c4e60",
@@ -60,10 +58,7 @@
             },
             "queryType": 1,
             "resourceType": "microsoft.resourcegraph/resources",
-            "value": [
-              "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765/resourceGroups/northwind-vb/providers/Microsoft.OperationalInsights/workspaces/NW-LA-Demo",
-              "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765/resourceGroups/contoso-management-rg/providers/Microsoft.OperationalInsights/workspaces/contoso-azmon-us"
-            ]
+            "value": []
           },
           {
             "id": "04a8ead2-1fb2-4666-a7b0-6d92e3c29b46",
@@ -106,7 +101,7 @@
               "allowCustom": true
             },
             "value": {
-              "durationMs": 2592000000
+              "durationMs": 604800000
             }
           }
         ],
@@ -114,7 +109,7 @@
         "queryType": 0,
         "resourceType": "microsoft.operationalinsights/workspaces"
       },
-      "name": "parameters - 2"
+      "name": "Parameters"
     },
     {
       "type": 11,
@@ -157,7 +152,7 @@
               "title": "Computers missing updates",
               "noDataMessage": "No missing updates detected in the specified time range",
               "timeContext": {
-                "durationMs": 86400000
+                "durationMs": 2592000000
               },
               "timeContextFromParameter": "TimeRange",
               "queryType": 0,
@@ -183,7 +178,7 @@
               "size": 1,
               "title": "Required Updates",
               "timeContext": {
-                "durationMs": 86400000
+                "durationMs": 2592000000
               },
               "timeContextFromParameter": "TimeRange",
               "queryType": 0,
@@ -386,6 +381,10 @@
                 ]
               }
             },
+            "conditionalVisibility": {
+              "parameterName": "Computer",
+              "comparison": "isEqualTo"
+            },
             "name": "um-missingupdates"
           }
         ]
@@ -412,7 +411,7 @@
               "title": "Linux Computers",
               "noDataMessage": "No missing updates detected in the specified time range",
               "timeContext": {
-                "durationMs": 86400000
+                "durationMs": 0
               },
               "timeContextFromParameter": "TimeRange",
               "queryType": 0,
@@ -422,7 +421,6 @@
               ],
               "visualization": "piechart"
             },
-            "customWidth": "44",
             "showPin": true,
             "name": "um-windcompupdatesmissinggr - Copy"
           },
@@ -430,35 +428,88 @@
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "Update\r\n| where OSType==\"Linux\"\r\n| summarize arg_max(TimeGenerated, *) by Computer, SourceComputerId, Product, ProductArch\r\n| where UpdateState=~\"Needed\"\r\n| summarize SecurityUpdates = countif(Classification == \"Security Updates\"), CriticalUpdates = countif(Classification == \"Critical Updates\"), OtherUpdates = countif(Classification == \"Others\") by Computer",
+              "query": "Update\r\n| where OSType==\"Linux\"\r\n| summarize hint.strategy=partitioned arg_max(TimeGenerated, *) by Computer,SourceComputerId,UpdateID\r\n| where UpdateState=~\"Needed\"\r\n| join ( Heartbeat\r\n| summarize LastHeartBeat = arg_max(TimeGenerated, *) by Computer\r\n| project LastHeartBeat, Computer, OSType, OSName, OSMajorVersion, OSMinorVersion\r\n) on Computer\r\n| summarize arg_max(TimeGenerated, *), SecurityUpdates = countif(Classification == \"Security Updates\"), CriticalUpdates = countif(Classification == \"Critical Updates\"), Others = countif(Classification == \"Others\") by Computer, OSType, OSName, OSMajorVersion, OSMinorVersion, ResourceId, LastHeartBeat\r\n| extend OSVersionFull = strcat(OSMajorVersion, \".\", OSMinorVersion)\r\n| project Computer, ResourceId, OSType, OSName, OSVersionFull, LastHeartBeat, SecurityUpdates, CriticalUpdates, Others",
               "size": 0,
               "title": "Linux Computers: Missing Updates",
               "noDataMessage": "No data collected for the selected time range",
               "timeContext": {
-                "durationMs": 86400000
+                "durationMs": 0
               },
               "timeContextFromParameter": "TimeRange",
+              "exportFieldName": "Computer",
+              "exportParameterName": "Computer",
               "showExportToExcel": true,
               "exportToExcelOptions": "all",
               "queryType": 0,
               "resourceType": "microsoft.operationalinsights/workspaces",
               "crossComponentResources": [
                 "{Workspace}"
-              ]
+              ],
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "Computer",
+                    "formatter": 5
+                  },
+                  {
+                    "columnMatch": "ResourceId",
+                    "formatter": 13,
+                    "formatOptions": {
+                      "linkTarget": null,
+                      "showIcon": true
+                    }
+                  },
+                  {
+                    "columnMatch": "OSType",
+                    "formatter": 5
+                  }
+                ],
+                "labelSettings": [
+                  {
+                    "columnId": "Computer"
+                  },
+                  {
+                    "columnId": "ResourceId",
+                    "label": "Computer"
+                  },
+                  {
+                    "columnId": "OSType"
+                  },
+                  {
+                    "columnId": "OSName",
+                    "label": "Operating System"
+                  },
+                  {
+                    "columnId": "OSVersionFull",
+                    "label": "OS Version"
+                  },
+                  {
+                    "columnId": "LastHeartBeat"
+                  },
+                  {
+                    "columnId": "SecurityUpdates"
+                  },
+                  {
+                    "columnId": "CriticalUpdates"
+                  },
+                  {
+                    "columnId": "Others"
+                  }
+                ]
+              }
             },
-            "customWidth": "55",
             "name": "um-missingupdatesbycomputer - Copy"
           },
           {
             "type": 3,
             "content": {
               "version": "KqlItem/1.0",
-              "query": "Update \r\n| where UpdateState == \"Needed\" and OSType==\"Linux\"\r\n| summarize arg_max(TimeGenerated, *) by Product, ProductArch\r\n| where (Classification == \"Security Updates\" or Classification == \"Critical Updates\" or Classification == \"Definition Updates\" or Classification == \"Others\")\r\n| summarize MissingCount = count(Computer) by Product, ProductArch, Classification, ProductVersion, PackageRepository\r\n| project Classification, Product, ProductArch, ProductVersion, PackageRepository, MissingCount\r\n| order by MissingCount desc, Classification desc, Product asc",
+              "query": "let ComputerName = '{Computer}';\r\nUpdate \r\n| extend ComputerName = iif(ComputerName == \"\", \".\", ComputerName)\r\n| where UpdateState == \"Needed\" and OSType==\"Linux\" and Computer contains ComputerName\r\n| summarize arg_max(TimeGenerated, *) by Product, ProductArch\r\n| where (Classification == \"Security Updates\" or Classification == \"Critical Updates\" or Classification == \"Definition Updates\" or Classification == \"Others\")\r\n| summarize MissingCount = count(Computer) by Product, ProductArch, Classification, ProductVersion, PackageRepository\r\n| project Classification, Product, ProductArch, ProductVersion, PackageRepository, MissingCount\r\n| order by MissingCount desc, Classification desc, Product asc",
               "size": 0,
               "showAnalytics": true,
-              "title": "Missing Updates on Linux Servers",
+              "title": "Missing Updates on {Computer}",
               "timeContext": {
-                "durationMs": 86400000
+                "durationMs": 0
               },
               "timeContextFromParameter": "TimeRange",
               "showExportToExcel": true,
@@ -466,7 +517,19 @@
               "resourceType": "microsoft.operationalinsights/workspaces",
               "crossComponentResources": [
                 "{Workspace}"
-              ]
+              ],
+              "gridSettings": {
+                "formatters": [
+                  {
+                    "columnMatch": "MissingCount",
+                    "formatter": 5
+                  }
+                ]
+              }
+            },
+            "conditionalVisibility": {
+              "parameterName": "Computer",
+              "comparison": "isEqualTo"
             },
             "name": "um-missingupdates-linux"
           }
