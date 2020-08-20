@@ -36,7 +36,9 @@
             },
             "queryType": 1,
             "resourceType": "microsoft.resourcegraph/resources",
-            "value": []
+            "value": [
+              "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765"
+            ]
           },
           {
             "id": "8df9c309-e7d1-43ad-b2ad-2d190c0c4e60",
@@ -58,7 +60,9 @@
             },
             "queryType": 1,
             "resourceType": "microsoft.resourcegraph/resources",
-            "value": []
+            "value": [
+              "value::all"
+            ]
           },
           {
             "id": "04a8ead2-1fb2-4666-a7b0-6d92e3c29b46",
@@ -152,7 +156,7 @@
               "title": "Computers missing updates",
               "noDataMessage": "No missing updates detected in the specified time range",
               "timeContext": {
-                "durationMs": 2592000000
+                "durationMs": 604800000
               },
               "timeContextFromParameter": "TimeRange",
               "queryType": 0,
@@ -178,7 +182,7 @@
               "size": 1,
               "title": "Required Updates",
               "timeContext": {
-                "durationMs": 2592000000
+                "durationMs": 604800000
               },
               "timeContextFromParameter": "TimeRange",
               "queryType": 0,
@@ -237,7 +241,7 @@
               "title": "Windows Computers: Missing Updates",
               "noDataMessage": "No data collected for the selected time range",
               "timeContext": {
-                "durationMs": 0
+                "durationMs": 604800000
               },
               "timeContextFromParameter": "TimeRange",
               "exportFieldName": "Computer",
@@ -336,7 +340,7 @@
               "showAnalytics": true,
               "title": "Missing Updates on Windows Servers - {Computer}",
               "timeContext": {
-                "durationMs": 0
+                "durationMs": 604800000
               },
               "timeContextFromParameter": "TimeRange",
               "showExportToExcel": true,
@@ -381,10 +385,6 @@
                 ]
               }
             },
-            "conditionalVisibility": {
-              "parameterName": "Computer",
-              "comparison": "isEqualTo"
-            },
             "name": "um-missingupdates"
           }
         ]
@@ -411,7 +411,7 @@
               "title": "Linux Computers",
               "noDataMessage": "No missing updates detected in the specified time range",
               "timeContext": {
-                "durationMs": 0
+                "durationMs": 604800000
               },
               "timeContextFromParameter": "TimeRange",
               "queryType": 0,
@@ -526,10 +526,6 @@
                   }
                 ]
               }
-            },
-            "conditionalVisibility": {
-              "parameterName": "Computer",
-              "comparison": "isEqualTo"
             },
             "name": "um-missingupdates-linux"
           }
