@@ -448,16 +448,8 @@
               "gridSettings": {
                 "formatters": [
                   {
-                    "columnMatch": "Computer",
-                    "formatter": 5
-                  },
-                  {
                     "columnMatch": "ResourceId",
-                    "formatter": 13,
-                    "formatOptions": {
-                      "linkTarget": null,
-                      "showIcon": true
-                    }
+                    "formatter": 5
                   },
                   {
                     "columnMatch": "OSType",
@@ -509,7 +501,7 @@
               "showAnalytics": true,
               "title": "Missing Updates on {Computer}",
               "timeContext": {
-                "durationMs": 0
+                "durationMs": 604800000
               },
               "timeContextFromParameter": "TimeRange",
               "showExportToExcel": true,
