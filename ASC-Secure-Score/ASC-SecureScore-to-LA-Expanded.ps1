@@ -1,7 +1,7 @@
 <#
 
 .DESCRIPTION
-Extract ASC Secure Score information for recommendation clusters from all subscriptions on a regular basis, and write back to a custom table in Azure Monitor Logs
+Extract ASC Secure Score information from all subscriptions on a regular basis, and write back to a custom table in Azure Monitor Logs
 
 Prerequisite: 
 - an Azure Automation account with an Azure Run As account credential.
@@ -128,7 +128,7 @@ function Get-SecureScore($SubscriptionId)
     'Authorization'="Bearer $token"
     }
  
-    $result = Invoke-RestMethod -Uri "https://management.azure.com/subscriptions/$SubscriptionId/providers/Microsoft.Security/secureScores/ascScore/secureScoreControls?api-version=2020-01-01-preview" -Method Get -Headers $authHeader
+    $result = Invoke-RestMethod -Uri "https://management.azure.com/subscriptions/$SubscriptionId/providers/Microsoft.Security/secureScores/ascScore/secureScoreControls?api-version=2020-01-01-preview&`e[$]expand=definition" -Method Get -Headers $authHeader
     return $result.value
 }
 
