@@ -1,0 +1,208 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 1,
+      "content": {
+        "json": "# Resource Centric log query testing workbook"
+      },
+      "name": "headertext"
+    },
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "crossComponentResources": [
+          "{Subscription}"
+        ],
+        "parameters": [
+          {
+            "id": "b859a03f-2283-43dd-8536-42714bbfced6",
+            "version": "KqlParameterItem/1.0",
+            "name": "Subscription",
+            "type": 6,
+            "isRequired": true,
+            "multiSelect": true,
+            "quote": "'",
+            "delimiter": ",",
+            "query": "summarize by subscriptionId\r\n| project value = strcat('/subscriptions/', subscriptionId), label = subscriptionId",
+            "crossComponentResources": [
+              "value::selected"
+            ],
+            "typeSettings": {
+              "additionalResourceOptions": [
+                "value::all"
+              ]
+            },
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources",
+            "value": [
+              "value::all"
+            ]
+          },
+          {
+            "id": "0d771df8-9b61-4c2a-841d-f980b1840ba5",
+            "version": "KqlParameterItem/1.0",
+            "name": "ResourceGroups",
+            "label": "Resource Groups",
+            "type": 5,
+            "isRequired": true,
+            "multiSelect": true,
+            "quote": "'",
+            "delimiter": ",",
+            "query": "resourcecontainers\r\n| where type == \"microsoft.resources/subscriptions/resourcegroups\"\r\n| project value = id, label = name, selected = true",
+            "crossComponentResources": [
+              "{Subscription}"
+            ],
+            "value": [
+              "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765/resourceGroups/NW-Data-Bits",
+              "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765/resourceGroups/NW-WP-RG"
+            ],
+            "typeSettings": {
+              "additionalResourceOptions": [
+                "value::all"
+              ],
+              "showDefault": false
+            },
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources"
+          },
+          {
+            "id": "04a8ead2-1fb2-4666-a7b0-6d92e3c29b46",
+            "version": "KqlParameterItem/1.0",
+            "name": "TimeRange",
+            "type": 4,
+            "typeSettings": {
+              "selectableValues": [
+                {
+                  "durationMs": 14400000
+                },
+                {
+                  "durationMs": 43200000
+                },
+                {
+                  "durationMs": 86400000
+                },
+                {
+                  "durationMs": 172800000
+                },
+                {
+                  "durationMs": 259200000
+                },
+                {
+                  "durationMs": 604800000
+                },
+                {
+                  "durationMs": 1209600000
+                },
+                {
+                  "durationMs": 2592000000
+                },
+                {
+                  "durationMs": 5184000000
+                },
+                {
+                  "durationMs": 7776000000
+                }
+              ],
+              "allowCustom": true
+            },
+            "value": {
+              "durationMs": 43200000
+            }
+          }
+        ],
+        "style": "pills",
+        "queryType": 1,
+        "resourceType": "microsoft.resourcegraph/resources"
+      },
+      "name": "parameters - 2"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "The query below will list all the metrics from the AzureMetrics table with a count of the entries, based on the resource groups selected above. This can be used to test resource-centric log queries in workbooks."
+      },
+      "name": "abouttext"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "AzureMetrics \r\n| summarize count() by Resource, ResourceProvider, ResourceGroup",
+        "size": 0,
+        "aggregation": 3,
+        "timeContext": {
+          "durationMs": 0
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.resources/resourcegroups",
+        "crossComponentResources": [
+          "{ResourceGroups}"
+        ],
+        "gridSettings": {
+          "formatters": [
+            {
+              "columnMatch": "State",
+              "formatter": 18,
+              "formatOptions": {
+                "thresholdsOptions": "icons",
+                "thresholdsGrid": [
+                  {
+                    "operator": "==",
+                    "thresholdValue": "Healthy",
+                    "representation": "Available",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "==",
+                    "thresholdValue": "Unhealthy",
+                    "representation": "failed",
+                    "text": "{0}{1}"
+                  },
+                  {
+                    "operator": "Default",
+                    "thresholdValue": null,
+                    "representation": "success",
+                    "text": "{0}{1}"
+                  }
+                ]
+              }
+            },
+            {
+              "columnMatch": "MemTrend",
+              "formatter": 9,
+              "formatOptions": {
+                "palette": "blue"
+              }
+            },
+            {
+              "columnMatch": "CPUTrend",
+              "formatter": 9,
+              "formatOptions": {
+                "palette": "blue"
+              }
+            },
+            {
+              "columnMatch": "TSActTrend",
+              "formatter": 9,
+              "formatOptions": {
+                "palette": "blue"
+              }
+            }
+          ]
+        },
+        "chartSettings": {
+          "group": "MetricName",
+          "createOtherGroup": null
+        }
+      },
+      "name": "query - 3"
+    }
+  ],
+  "fallbackResourceIds": [
+    "Azure Monitor"
+  ],
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}
