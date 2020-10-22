@@ -1,0 +1,580 @@
+{
+    "version": "Notebook/1.0",
+    "items": [
+      {
+        "type": 1,
+        "content": {
+          "json": "# Azure Security Center\r\n## Secure Score"
+        },
+        "name": "headertext"
+      },
+      {
+        "type": 9,
+        "content": {
+          "version": "KqlParameterItem/1.0",
+          "parameters": [
+            {
+              "id": "b859a03f-2283-43dd-8536-42714bbfced6",
+              "version": "KqlParameterItem/1.0",
+              "name": "Subscriptions",
+              "type": 6,
+              "isRequired": true,
+              "multiSelect": true,
+              "quote": "'",
+              "delimiter": ",",
+              "query": "summarize by subscriptionId\r\n| project value = strcat('/subscriptions/', subscriptionId), label = subscriptionId",
+              "crossComponentResources": [
+                "value::selected"
+              ],
+              "typeSettings": {
+                "additionalResourceOptions": [
+                  "value::all"
+                ]
+              },
+              "queryType": 1,
+              "resourceType": "microsoft.resourcegraph/resources",
+              "value": [
+                "value::all"
+              ]
+            },
+            {
+              "id": "8df9c309-e7d1-43ad-b2ad-2d190c0c4e60",
+              "version": "KqlParameterItem/1.0",
+              "name": "Workspace",
+              "type": 5,
+              "isRequired": true,
+              "multiSelect": true,
+              "quote": "'",
+              "delimiter": ",",
+              "query": "where type =~ 'microsoft.operationalinsights/workspaces'\r\n| summarize by id, name\r\n| project id",
+              "crossComponentResources": [
+                "{Subscriptions}"
+              ],
+              "value": [
+                "value::all"
+              ],
+              "typeSettings": {
+                "additionalResourceOptions": [
+                  "value::all"
+                ],
+                "showDefault": false
+              },
+              "queryType": 1,
+              "resourceType": "microsoft.resourcegraph/resources"
+            },
+            {
+              "id": "13c4d0e5-8c94-4d23-bb2d-80e87446f965",
+              "version": "KqlParameterItem/1.0",
+              "name": "Tag",
+              "label": "Tag Name",
+              "type": 1,
+              "description": "This tag is used to identify resources by team/department",
+              "isRequired": true,
+              "value": "Department"
+            }
+          ],
+          "style": "pills",
+          "queryType": 0,
+          "resourceType": "microsoft.resourcegraph/resources"
+        },
+        "name": "parameters - 2"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "This workbook relies on tags being  to all resources, which you can set in the Tag parameter above. If resources are untagged, their score will not be considered in the Posture by Team section of this workbook."
+        },
+        "name": "abouttext"
+      },
+      {
+        "type": 11,
+        "content": {
+          "version": "LinkItem/1.0",
+          "style": "tabs",
+          "links": [
+            {
+              "id": "12f13d3e-2cae-4c3f-8f2f-e02bd0a14214",
+              "cellValue": "selectedTab",
+              "linkTarget": "parameter",
+              "linkLabel": "Overview",
+              "subTarget": "Overview",
+              "style": "link"
+            },
+            {
+              "id": "f843427c-f1b0-432e-b985-b4bfa9ddf9e1",
+              "cellValue": "selectedTab",
+              "linkTarget": "parameter",
+              "linkLabel": "Posture by Team",
+              "subTarget": "TeamPosture",
+              "style": "link"
+            }
+          ]
+        },
+        "name": "links - 3"
+      },
+      {
+        "type": 12,
+        "content": {
+          "version": "NotebookGroup/1.0",
+          "groupType": "editable",
+          "items": [
+            {
+              "type": 12,
+              "content": {
+                "version": "NotebookGroup/1.0",
+                "groupType": "editable",
+                "items": [
+                  {
+                    "type": 3,
+                    "content": {
+                      "version": "KqlItem/1.0",
+                      "query": "securityresources\r\n| where type == \"microsoft.security/securescores\"\r\n| extend subScorePercentage = todouble(properties.score.current)/todouble(properties.score.max)\r\n| extend subScorePercentageXsubWeight = todouble(subScorePercentage)*todouble(properties.weight)\r\n| summarize upperValue = sum(subScorePercentageXsubWeight), underValue = sum(todouble(properties.weight))\r\n| extend overallScore = round(100*((upperValue)/(underValue)))",
+                      "size": 4,
+                      "title": "Overall Secure Score",
+                      "noDataMessage": "No subscriptions selected, or no score information for the selected subscription",
+                      "noDataMessageStyle": 5,
+                      "queryType": 1,
+                      "resourceType": "microsoft.resourcegraph/resources",
+                      "crossComponentResources": [
+                        "{Subscriptions}"
+                      ],
+                      "visualization": "tiles",
+                      "tileSettings": {
+                        "titleContent": {
+                          "columnMatch": "overallScore",
+                          "formatter": 12,
+                          "formatOptions": {
+                            "palette": "redGreen"
+                          },
+                          "numberFormat": {
+                            "unit": 1,
+                            "options": {
+                              "style": "decimal",
+                              "useGrouping": false,
+                              "maximumFractionDigits": 2
+                            }
+                          }
+                        },
+                        "showBorder": false,
+                        "size": "auto"
+                      },
+                      "graphSettings": {
+                        "type": 0
+                      }
+                    },
+                    "name": "Overall Secure Score",
+                    "styleSettings": {
+                      "margin": "1px",
+                      "padding": "1px"
+                    }
+                  },
+                  {
+                    "type": 3,
+                    "content": {
+                      "version": "KqlItem/1.0",
+                      "query": "SecureScore_CL \r\n| where DisplayName_s == \"ASC score\"\r\n| extend CurrentScore = round(todouble(CurrentScore_s))\r\n| extend MaxScore = round(todouble(MaxScore_s))\r\n| extend sScoreT = round((CurrentScore/MaxScore)*100)\r\n| summarize AggregatedValue = avg(sScoreT) by bin(TimeGenerated, 4h)",
+                      "size": 0,
+                      "aggregation": 3,
+                      "title": "Overall Secure Score Trend for the last 7 days",
+                      "noDataMessage": "No trend data available. Please ensure you have implemented the automation to collect the secure score data per subscription into the associated Azure Monitor Logs workspace.",
+                      "noDataMessageStyle": 2,
+                      "timeContext": {
+                        "durationMs": 604800000
+                      },
+                      "queryType": 0,
+                      "resourceType": "microsoft.operationalinsights/workspaces",
+                      "crossComponentResources": [
+                        "{Workspace}"
+                      ],
+                      "visualization": "barchart",
+                      "gridSettings": {
+                        "formatters": [
+                          {
+                            "columnMatch": "Type",
+                            "formatter": 11
+                          },
+                          {
+                            "columnMatch": "Trend",
+                            "formatter": 10,
+                            "formatOptions": {
+                              "palette": "blue"
+                            }
+                          },
+                          {
+                            "columnMatch": "TimeGenerated",
+                            "formatter": 5
+                          }
+                        ]
+                      },
+                      "chartSettings": {
+                        "seriesLabelSettings": [
+                          {
+                            "seriesName": "AggregatedValue",
+                            "label": "Secure Score Trend"
+                          }
+                        ],
+                        "ySettings": {
+                          "numberFormatSettings": {
+                            "unit": 1,
+                            "options": {
+                              "style": "decimal",
+                              "useGrouping": true,
+                              "maximumFractionDigits": 2
+                            }
+                          },
+                          "min": 0,
+                          "max": 100
+                        }
+                      }
+                    },
+                    "name": "securescoretrend"
+                  }
+                ]
+              },
+              "customWidth": "50",
+              "name": "SecureScoreOverview1"
+            },
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "securityresources\r\n| where type == \"microsoft.security/securescores\"\r\n| extend subscriptionSecureScore = round(100 * bin((todouble(properties.score.current))/ todouble(properties.score.max), 0.001))\r\n| where subscriptionSecureScore > 0\r\n| project subscriptionId, subscriptionSecureScore\r\n| order by subscriptionSecureScore desc",
+                "size": 2,
+                "title": "Secure Score by Subscription",
+                "noDataMessage": "No Secure Score detected for the selected subscription.",
+                "noDataMessageStyle": 4,
+                "queryType": 1,
+                "resourceType": "microsoft.resourcegraph/resources",
+                "crossComponentResources": [
+                  "{Subscriptions}"
+                ],
+                "gridSettings": {
+                  "formatters": [
+                    {
+                      "columnMatch": "subscriptionId",
+                      "formatter": 15,
+                      "formatOptions": {
+                        "linkTarget": null,
+                        "showIcon": true
+                      }
+                    },
+                    {
+                      "columnMatch": "subscriptionSecureScore",
+                      "formatter": 8,
+                      "formatOptions": {
+                        "palette": "redGreen"
+                      },
+                      "numberFormat": {
+                        "unit": 1,
+                        "options": {
+                          "style": "decimal",
+                          "maximumFractionDigits": 2
+                        }
+                      }
+                    }
+                  ],
+                  "sortBy": [
+                    {
+                      "itemKey": "$gen_heatmap_subscriptionSecureScore_1",
+                      "sortOrder": 2
+                    }
+                  ],
+                  "labelSettings": [
+                    {
+                      "columnId": "subscriptionId",
+                      "label": "Subscription"
+                    },
+                    {
+                      "columnId": "subscriptionSecureScore",
+                      "label": "Secure Score"
+                    }
+                  ]
+                },
+                "sortBy": [
+                  {
+                    "itemKey": "$gen_heatmap_subscriptionSecureScore_1",
+                    "sortOrder": 2
+                  }
+                ]
+              },
+              "customWidth": "50",
+              "showPin": true,
+              "name": "Secure Score by Subscription"
+            }
+          ]
+        },
+        "conditionalVisibility": {
+          "parameterName": "selectedTab",
+          "comparison": "isEqualTo",
+          "value": "Overview"
+        },
+        "name": "overviewgroup"
+      },
+      {
+        "type": 12,
+        "content": {
+          "version": "NotebookGroup/1.0",
+          "groupType": "editable",
+          "items": [
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "Resources\r\n| extend department = tostring(tags.{Tag})\r\n| where department != \"\"\r\n| project ResourceName = name, department, type\r\n| join (\r\nsecurityresources\r\n| where type == \"microsoft.security/assessments/subassessments\"\r\n| extend txt1 = split(id, \"/\")\r\n| extend ResourceName = tostring(txt1[8])\r\n| project-away txt1\r\n| extend Status = properties.status.code, \r\n\tSeverity = properties.status.severity\r\n) on ResourceName\r\n| summarize Healthycount = countif(Status == \"Healthy\"), Unhealthycount = countif(Status == \"Unhealthy\") by department\r\n| extend fullcount = (todouble(Healthycount)+todouble(Unhealthycount))\r\n| extend score = (todouble(Healthycount)/todouble(fullcount))*100\r\n| order by score desc",
+                "size": 1,
+                "title": "Security Posture by Department",
+                "exportFieldName": "department",
+                "exportParameterName": "Team",
+                "queryType": 1,
+                "resourceType": "microsoft.resourcegraph/resources",
+                "crossComponentResources": [
+                  "{Subscriptions}"
+                ],
+                "gridSettings": {
+                  "formatters": [
+                    {
+                      "columnMatch": "fullcount",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "score",
+                      "formatter": 3,
+                      "formatOptions": {
+                        "min": 0,
+                        "max": 100,
+                        "palette": "hotCold"
+                      },
+                      "numberFormat": {
+                        "unit": 1,
+                        "options": {
+                          "style": "decimal",
+                          "useGrouping": false,
+                          "maximumFractionDigits": 1
+                        }
+                      }
+                    }
+                  ],
+                  "labelSettings": [
+                    {
+                      "columnId": "department",
+                      "label": "Department"
+                    },
+                    {
+                      "columnId": "Healthycount",
+                      "label": "Healthy Recommendations"
+                    },
+                    {
+                      "columnId": "Unhealthycount",
+                      "label": "Unhealthy Recommendations"
+                    },
+                    {
+                      "columnId": "fullcount"
+                    },
+                    {
+                      "columnId": "score",
+                      "label": "Score"
+                    }
+                  ]
+                }
+              },
+              "name": "posturebyteam"
+            },
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "Resources\r\n| extend department = tostring(tags.{Tag})\r\n| where department == '{Team:value}'\r\n| project ResourceName = name, department, type\r\n| join (\r\nsecurityresources\r\n| where type == \"microsoft.security/assessments/subassessments\"\r\n| extend txt1 = split(id, \"/\")\r\n| extend ResourceName = tostring(txt1[8])\r\n| project-away txt1\r\n| extend Status = properties.status.code, \r\n\tSeverity = properties.status.severity,\r\n\tRecommendation = properties.displayName,\r\n\tDescription = properties.description,\r\n    Remediation = properties.remediation\r\n) on ResourceName",
+                "size": 0,
+                "title": "Posture Detail for {Team}",
+                "showExportToExcel": true,
+                "queryType": 1,
+                "resourceType": "microsoft.resourcegraph/resources",
+                "crossComponentResources": [
+                  "{Subscriptions}"
+                ],
+                "gridSettings": {
+                  "formatters": [
+                    {
+                      "columnMatch": "ResourceName",
+                      "formatter": 13,
+                      "formatOptions": {
+                        "linkTarget": null,
+                        "showIcon": true
+                      }
+                    },
+                    {
+                      "columnMatch": "type",
+                      "formatter": 16,
+                      "formatOptions": {
+                        "showIcon": true
+                      }
+                    },
+                    {
+                      "columnMatch": "id",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "name",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "type1",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "tenantId",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "kind",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "location",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "subscriptionId",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "managedBy",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "sku",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "plan",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "properties",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "tags",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "identity",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "zones",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "ResourceName1",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "Status",
+                      "formatter": 18,
+                      "formatOptions": {
+                        "thresholdsOptions": "colors",
+                        "thresholdsGrid": [
+                          {
+                            "operator": "==",
+                            "thresholdValue": "Unhealthy",
+                            "representation": "redBright",
+                            "text": "{0}{1}"
+                          },
+                          {
+                            "operator": "==",
+                            "thresholdValue": "Healthy",
+                            "representation": "green",
+                            "text": "{0}{1}"
+                          },
+                          {
+                            "operator": "Default",
+                            "thresholdValue": null,
+                            "representation": "blue",
+                            "text": "{0}{1}"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "columnMatch": "Severity",
+                      "formatter": 18,
+                      "formatOptions": {
+                        "thresholdsOptions": "icons",
+                        "thresholdsGrid": [
+                          {
+                            "operator": "==",
+                            "thresholdValue": "High",
+                            "representation": "4",
+                            "text": "{0}{1}"
+                          },
+                          {
+                            "operator": "==",
+                            "thresholdValue": "Medium",
+                            "representation": "2",
+                            "text": "{0}{1}"
+                          },
+                          {
+                            "operator": "==",
+                            "thresholdValue": "Low",
+                            "representation": "Important",
+                            "text": "{0}{1}"
+                          },
+                          {
+                            "operator": "Default",
+                            "thresholdValue": null,
+                            "representation": "success",
+                            "text": "{0}{1}"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "columnMatch": "Recommendation",
+                      "formatter": 1
+                    },
+                    {
+                      "columnMatch": "Description",
+                      "formatter": 1
+                    },
+                    {
+                      "columnMatch": "Remediation",
+                      "formatter": 1
+                    }
+                  ],
+                  "filter": true,
+                  "sortBy": [
+                    {
+                      "itemKey": "$gen_thresholds_Status_19",
+                      "sortOrder": 2
+                    }
+                  ]
+                },
+                "sortBy": [
+                  {
+                    "itemKey": "$gen_thresholds_Status_19",
+                    "sortOrder": 2
+                  }
+                ]
+              },
+              "conditionalVisibility": {
+                "parameterName": "Team",
+                "comparison": "isNotEqualTo"
+              },
+              "name": "posturedetailforteam"
+            }
+          ]
+        },
+        "conditionalVisibility": {
+          "parameterName": "selectedTab",
+          "comparison": "isEqualTo",
+          "value": "TeamPosture"
+        },
+        "name": "SecureScoreGroup"
+      }
+    ],
+    "fallbackResourceIds": [
+      "Azure Monitor"
+    ],
+    "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+  }
