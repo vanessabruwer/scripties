@@ -1,0 +1,425 @@
+{
+    "version": "Notebook/1.0",
+    "items": [
+      {
+        "type": 1,
+        "content": {
+          "json": "# App Service Metrics\n"
+        },
+        "name": "text - 0"
+      },
+      {
+        "type": 9,
+        "content": {
+          "version": "KqlParameterItem/1.0",
+          "crossComponentResources": [
+            "{Subscription}"
+          ],
+          "parameters": [
+            {
+              "id": "56fcfccf-f972-4e15-9b3a-9e463b365e02",
+              "version": "KqlParameterItem/1.0",
+              "name": "Subscription",
+              "type": 6,
+              "multiSelect": true,
+              "quote": "'",
+              "delimiter": ",",
+              "query": "summarize by subscriptionId\r\n| project value = strcat('/subscriptions/', subscriptionId), label = subscriptionId, selected = true",
+              "crossComponentResources": [
+                "value::selected"
+              ],
+              "typeSettings": {
+                "additionalResourceOptions": [
+                  "value::all"
+                ]
+              },
+              "queryType": 1,
+              "resourceType": "microsoft.resourcegraph/resources"
+            },
+            {
+              "id": "71badead-933c-4f0a-8468-e2458d2ea872",
+              "version": "KqlParameterItem/1.0",
+              "name": "AppServices",
+              "type": 5,
+              "isRequired": true,
+              "multiSelect": true,
+              "quote": "'",
+              "delimiter": ",",
+              "query": "resources\r\n| where type == \"microsoft.web/sites\"\r\n| project value= id, label = name",
+              "crossComponentResources": [
+                "{Subscription}"
+              ],
+              "value": [
+                "value::all"
+              ],
+              "typeSettings": {
+                "resourceTypeFilter": {
+                  "microsoft.web/sites": true
+                },
+                "additionalResourceOptions": [
+                  "value::all"
+                ],
+                "showDefault": false
+              },
+              "queryType": 1,
+              "resourceType": "microsoft.resourcegraph/resources"
+            },
+            {
+              "id": "f5d8750b-37d8-4e06-9e3f-fdef414c275f",
+              "version": "KqlParameterItem/1.0",
+              "name": "TimeRange",
+              "type": 4,
+              "description": null,
+              "isRequired": true,
+              "typeSettings": {
+                "selectableValues": [
+                  {
+                    "durationMs": 1800000,
+                    "createdTime": "2018-08-02T19:21:14.551Z",
+                    "isInitialTime": false,
+                    "grain": 1,
+                    "useDashboardTimeRange": false
+                  },
+                  {
+                    "durationMs": 3600000,
+                    "createdTime": "2018-08-02T19:21:14.552Z",
+                    "isInitialTime": false,
+                    "grain": 1,
+                    "useDashboardTimeRange": false
+                  },
+                  {
+                    "durationMs": 14400000,
+                    "createdTime": "2018-08-02T19:21:14.552Z",
+                    "isInitialTime": false,
+                    "grain": 1,
+                    "useDashboardTimeRange": false
+                  },
+                  {
+                    "durationMs": 43200000,
+                    "createdTime": "2018-08-02T19:21:14.552Z",
+                    "isInitialTime": false,
+                    "grain": 1,
+                    "useDashboardTimeRange": false
+                  },
+                  {
+                    "durationMs": 86400000,
+                    "createdTime": "2018-08-02T19:21:14.552Z",
+                    "isInitialTime": false,
+                    "grain": 1,
+                    "useDashboardTimeRange": false
+                  },
+                  {
+                    "durationMs": 172800000,
+                    "createdTime": "2018-08-02T19:21:14.552Z",
+                    "isInitialTime": false,
+                    "grain": 1,
+                    "useDashboardTimeRange": false
+                  },
+                  {
+                    "durationMs": 259200000,
+                    "createdTime": "2018-08-02T19:21:14.552Z",
+                    "isInitialTime": false,
+                    "grain": 1,
+                    "useDashboardTimeRange": false
+                  },
+                  {
+                    "durationMs": 604800000,
+                    "createdTime": "2018-08-02T19:21:14.553Z",
+                    "isInitialTime": false,
+                    "grain": 1,
+                    "useDashboardTimeRange": false
+                  },
+                  {
+                    "durationMs": 1209600000,
+                    "createdTime": "2018-08-02T19:21:14.553Z",
+                    "isInitialTime": false,
+                    "grain": 1,
+                    "useDashboardTimeRange": false
+                  }
+                ],
+                "allowCustom": null
+              },
+              "value": {
+                "durationMs": 86400000
+              }
+            }
+          ],
+          "style": "pills",
+          "queryType": 1,
+          "resourceType": "microsoft.resourcegraph/resources"
+        },
+        "name": "parameters - 1"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": ""
+        },
+        "name": "text - 2"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "### Http Server Errors (5xxx)"
+        },
+        "customWidth": "50",
+        "name": "text - 3"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "### Requests"
+        },
+        "customWidth": "50",
+        "name": "text - 4"
+      },
+      {
+        "type": 10,
+        "content": {
+          "chartId": "workbookb153db09-be06-45f6-97f0-34cde9af9838",
+          "version": "MetricsItem/2.0",
+          "size": 0,
+          "chartType": 2,
+          "color": "blue",
+          "resourceType": "microsoft.web/sites",
+          "metricScope": 0,
+          "resourceParameter": "AppServices",
+          "resourceIds": [
+            "{AppServices}"
+          ],
+          "timeContextFromParameter": "TimeRange",
+          "timeContext": {
+            "durationMs": 86400000
+          },
+          "metrics": [
+            {
+              "namespace": "microsoft.web/sites",
+              "metric": "microsoft.web/sites--Http5xx",
+              "aggregation": 1,
+              "splitBy": null
+            }
+          ],
+          "gridSettings": {
+            "rowLimit": 10000
+          }
+        },
+        "customWidth": "50",
+        "name": "metric - 5"
+      },
+      {
+        "type": 10,
+        "content": {
+          "chartId": "workbookb153db09-be06-45f6-97f0-34cde9af9838",
+          "version": "MetricsItem/2.0",
+          "size": 0,
+          "chartType": 2,
+          "color": "blue",
+          "resourceType": "microsoft.web/sites",
+          "metricScope": 0,
+          "resourceParameter": "AppServices",
+          "resourceIds": [
+            "{AppServices}"
+          ],
+          "timeContextFromParameter": "TimeRange",
+          "timeContext": {
+            "durationMs": 86400000
+          },
+          "metrics": [
+            {
+              "namespace": "microsoft.web/sites",
+              "metric": "microsoft.web/sites--Requests",
+              "aggregation": 1,
+              "splitBy": null
+            }
+          ],
+          "gridSettings": {
+            "rowLimit": 10000
+          }
+        },
+        "customWidth": "50",
+        "name": "metric - 6"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": ""
+        },
+        "name": "text - 7"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "### Data In"
+        },
+        "customWidth": "50",
+        "name": "text - 8"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "### Data Out"
+        },
+        "customWidth": "50",
+        "name": "text - 9"
+      },
+      {
+        "type": 10,
+        "content": {
+          "chartId": "workbookb153db09-be06-45f6-97f0-34cde9af9838",
+          "version": "MetricsItem/2.0",
+          "size": 0,
+          "chartType": 3,
+          "color": "blue",
+          "resourceType": "microsoft.web/sites",
+          "metricScope": 0,
+          "resourceParameter": "AppServices",
+          "resourceIds": [
+            "{AppServices}"
+          ],
+          "timeContextFromParameter": "TimeRange",
+          "timeContext": {
+            "durationMs": 86400000
+          },
+          "metrics": [
+            {
+              "namespace": "microsoft.web/sites",
+              "metric": "microsoft.web/sites--BytesReceived",
+              "aggregation": 1,
+              "splitBy": null
+            }
+          ],
+          "gridSettings": {
+            "rowLimit": 10000
+          }
+        },
+        "customWidth": "50",
+        "name": "metric - 10"
+      },
+      {
+        "type": 10,
+        "content": {
+          "chartId": "workbookb153db09-be06-45f6-97f0-34cde9af9838",
+          "version": "MetricsItem/2.0",
+          "size": 0,
+          "chartType": 3,
+          "color": "blue",
+          "resourceType": "microsoft.web/sites",
+          "metricScope": 0,
+          "resourceParameter": "AppServices",
+          "resourceIds": [
+            "{AppServices}"
+          ],
+          "timeContextFromParameter": "TimeRange",
+          "timeContext": {
+            "durationMs": 86400000
+          },
+          "metrics": [
+            {
+              "namespace": "microsoft.web/sites",
+              "metric": "microsoft.web/sites--BytesSent",
+              "aggregation": 1,
+              "splitBy": null
+            }
+          ],
+          "gridSettings": {
+            "rowLimit": 10000
+          }
+        },
+        "customWidth": "50",
+        "name": "metric - 11"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": ""
+        },
+        "name": "text - 12"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "### Average Response Time"
+        },
+        "customWidth": "50",
+        "name": "text - 13"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "### Memory Working Set"
+        },
+        "customWidth": "50",
+        "name": "text - 14"
+      },
+      {
+        "type": 10,
+        "content": {
+          "chartId": "workbookb153db09-be06-45f6-97f0-34cde9af9838",
+          "version": "MetricsItem/2.0",
+          "size": 0,
+          "chartType": 2,
+          "color": "blue",
+          "resourceType": "microsoft.web/sites",
+          "metricScope": 0,
+          "resourceParameter": "AppServices",
+          "resourceIds": [
+            "{AppServices}"
+          ],
+          "timeContextFromParameter": "TimeRange",
+          "timeContext": {
+            "durationMs": 86400000
+          },
+          "metrics": [
+            {
+              "namespace": "microsoft.web/sites",
+              "metric": "microsoft.web/sites--AverageResponseTime",
+              "aggregation": 4,
+              "splitBy": null
+            }
+          ],
+          "gridSettings": {
+            "rowLimit": 10000
+          }
+        },
+        "customWidth": "50",
+        "name": "metric - 15"
+      },
+      {
+        "type": 10,
+        "content": {
+          "chartId": "workbookb153db09-be06-45f6-97f0-34cde9af9838",
+          "version": "MetricsItem/2.0",
+          "size": 0,
+          "chartType": 2,
+          "color": "blue",
+          "resourceType": "microsoft.web/sites",
+          "metricScope": 0,
+          "resourceParameter": "AppServices",
+          "resourceIds": [
+            "{AppServices}"
+          ],
+          "timeContextFromParameter": "TimeRange",
+          "timeContext": {
+            "durationMs": 86400000
+          },
+          "metrics": [
+            {
+              "namespace": "microsoft.web/sites",
+              "metric": "microsoft.web/sites--MemoryWorkingSet",
+              "aggregation": 4,
+              "splitBy": null
+            }
+          ],
+          "gridSettings": {
+            "rowLimit": 10000
+          }
+        },
+        "customWidth": "50",
+        "name": "metric - 16"
+      }
+    ],
+    "fallbackResourceIds": [
+      "Azure Monitor"
+    ],
+    "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+  }
