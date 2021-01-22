@@ -10,9 +10,7 @@ Deploy Logic App using the button below. For this deployment, you will need the 
 <li>Workspace Key</li>
 </ul>
 
-<p><a href="https://azuredeploy.net/?repository=https://github.com/vanessabruwer/scripties/blob/master/Alert%20Dashboard%20Solution/" target="_blank">
-    <img src="http://azuredeploy.net/deploybutton.png"/>
-</a></p>
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fvanessabruwer%2Fscripties%2Fmaster%2FAlert%2520Dashboard%2520Solution%2Fazuredeploy.json)
 
 **The Workbook** is a sample showing the alerts that have been written in to the custom table usign the Logic App. To use the workbook, create a new workbook, and copy the code from this sample into the code area for the workbook, replacing the sample code in this workbook:
 
