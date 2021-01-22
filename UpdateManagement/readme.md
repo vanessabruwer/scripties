@@ -8,8 +8,4 @@ To use any of the workbooks found here, create a new workbook in Azure Monitor, 
 
 Use this button to deploy the Logic App to your environment
 
-<p><a href="https://azuredeploy.net/?repository=https://github.com/vanessabruwer/scripties/blob/master/UpdateManagement/" target="_blank">
-    <img src="http://azuredeploy.net/deploybutton.png"/>
-</a></p>
-
 [![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fvanessabruwer%2Fscripties%2Fmaster%2FUpdateManagement%2Fazuredeploy.json)
