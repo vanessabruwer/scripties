@@ -12,4 +12,4 @@ Use this button to deploy the Logic App to your environment
     <img src="http://azuredeploy.net/deploybutton.png"/>
 </a></p>
 
-[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fvanessabruwer%2Fscripties%2Fmaster%2FUpdateManagement%2Fazuredeploy.json%26api-version%3D6.0)
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fvanessabruwer%2Fscripties%2Fmaster%2FUpdateManagement%2Fazuredeploy.json)
