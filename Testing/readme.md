@@ -2,6 +2,4 @@
 
 Please ignore this and do not click this button
 
-<p><a href="https://azuredeploy.net/?repository=https://github.com/vanessabruwer/scripties/blob/master/Testing/" target="_blank">
-    <img src="http://azuredeploy.net/deploybutton.png"/>
-</a></p>
+[![Deploy to Azure](https://aka.ms/deploytoazurebutton)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fvanessabruwer%2Fscripties%2Fmaster%2FTesting%2Fazuredeploy.json)
