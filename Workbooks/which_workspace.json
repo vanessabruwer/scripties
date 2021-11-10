@@ -1,0 +1,233 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 1,
+      "content": {
+        "json": "# Find the workspaces"
+      },
+      "name": "headertext"
+    },
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "crossComponentResources": [
+          "{Subscription}"
+        ],
+        "parameters": [
+          {
+            "id": "b859a03f-2283-43dd-8536-42714bbfced6",
+            "version": "KqlParameterItem/1.0",
+            "name": "Subscription",
+            "type": 6,
+            "isRequired": true,
+            "multiSelect": true,
+            "quote": "'",
+            "delimiter": ",",
+            "query": "summarize by subscriptionId\r\n| project value = strcat('/subscriptions/', subscriptionId), label = subscriptionId",
+            "crossComponentResources": [
+              "value::selected"
+            ],
+            "typeSettings": {
+              "additionalResourceOptions": [
+                "value::all"
+              ]
+            },
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources",
+            "value": [
+              ""
+            ]
+          },
+          {
+            "id": "8df9c309-e7d1-43ad-b2ad-2d190c0c4e60",
+            "version": "KqlParameterItem/1.0",
+            "name": "Workspace",
+            "type": 5,
+            "isRequired": true,
+            "multiSelect": true,
+            "quote": "'",
+            "delimiter": ",",
+            "query": "where type =~ 'microsoft.operationalinsights/workspaces'\r\n| summarize by id, name\r\n| project id",
+            "crossComponentResources": [
+              "{Subscription}"
+            ],
+            "typeSettings": {
+              "additionalResourceOptions": [
+                "value::all"
+              ]
+            },
+            "queryType": 1,
+            "resourceType": "microsoft.resourcegraph/resources",
+            "value": [
+              "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765/resourceGroups/northwind-vb/providers/Microsoft.OperationalInsights/workspaces/NW-LA-Demo",
+              "/subscriptions/2a165113-1848-4c2b-9e1d-16aa48ac9765/resourceGroups/northwind-vb/providers/Microsoft.OperationalInsights/workspaces/northwind-demo"
+            ]
+          },
+          {
+            "id": "04a8ead2-1fb2-4666-a7b0-6d92e3c29b46",
+            "version": "KqlParameterItem/1.0",
+            "name": "TimeRange",
+            "type": 4,
+            "typeSettings": {
+              "selectableValues": [
+                {
+                  "durationMs": 14400000
+                },
+                {
+                  "durationMs": 43200000
+                },
+                {
+                  "durationMs": 86400000
+                },
+                {
+                  "durationMs": 172800000
+                },
+                {
+                  "durationMs": 259200000
+                },
+                {
+                  "durationMs": 604800000
+                },
+                {
+                  "durationMs": 1209600000
+                },
+                {
+                  "durationMs": 2592000000
+                },
+                {
+                  "durationMs": 5184000000
+                },
+                {
+                  "durationMs": 7776000000
+                }
+              ],
+              "allowCustom": true
+            },
+            "value": {
+              "durationMs": 86400000
+            }
+          }
+        ],
+        "style": "pills",
+        "queryType": 1,
+        "resourceType": "microsoft.resourcegraph/resources"
+      },
+      "name": "parameters - 2"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## Use this workbook to find the workspaces your machine is connected to"
+      },
+      "name": "abouttext"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "This is by no means perfect, but it should help. Ensure you have all your subscriptions and workspaces selected in the parameters above. The first table will show all the machines from all the workspaces selected, with a count of how many workspaces they are connected to. If you want to see the specific workspaces for a machine, select the machine, and it should appear in the bottom table.",
+        "style": "info"
+      },
+      "name": "text - 7"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "Heartbeat\r\n| where Category == \"Direct Agent\"\r\n| summarize Workspacecount = dcount(ManagementGroupName) by Computer\r\n| order by Workspacecount",
+        "size": 0,
+        "title": "All computers from heartbeat tables",
+        "exportFieldName": "Computer",
+        "exportParameterName": "Computer",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "gridSettings": {
+          "sortBy": [
+            {
+              "itemKey": "Workspacecount",
+              "sortOrder": 2
+            }
+          ]
+        },
+        "sortBy": [
+          {
+            "itemKey": "Workspacecount",
+            "sortOrder": 2
+          }
+        ]
+      },
+      "name": "query - 3"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "resources\r\n| where type == \"microsoft.operationalinsights/workspaces\"\r\n| extend WSID = strcat(\"AOI-\",properties.customerId)\r\n| project id, name, WSID",
+        "size": 4,
+        "title": "All Workspaces",
+        "queryType": 1,
+        "resourceType": "microsoft.resourcegraph/resources",
+        "crossComponentResources": [
+          "{Subscription}"
+        ]
+      },
+      "customWidth": "20",
+      "name": "allworkspaces"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "Heartbeat\r\n| where Category == \"Direct Agent\" and Computer == '{Computer}'\r\n| distinct ManagementGroupName",
+        "size": 4,
+        "title": "Workspaces for {Computer}",
+        "noDataMessage": "Please select the machine in the table above",
+        "timeContext": {
+          "durationMs": 86400000
+        },
+        "timeContextFromParameter": "TimeRange",
+        "queryType": 0,
+        "resourceType": "microsoft.operationalinsights/workspaces",
+        "crossComponentResources": [
+          "{Workspace}"
+        ],
+        "gridSettings": {
+          "labelSettings": [
+            {
+              "columnId": "ManagementGroupName",
+              "label": "Workspace IDs"
+            }
+          ]
+        }
+      },
+      "conditionalVisibility": {
+        "parameterName": "Computer",
+        "comparison": "isNotEqualTo"
+      },
+      "customWidth": "20",
+      "name": "workspaceids"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "{\"version\":\"Merge/1.0\",\"merges\":[{\"id\":\"c42c05a0-f832-47ad-a723-39e021a0006b\",\"mergeType\":\"innerunique\",\"leftTable\":\"workspaceids\",\"rightTable\":\"allworkspaces\",\"leftColumn\":\"ManagementGroupName\",\"rightColumn\":\"WSID\"}],\"projectRename\":[{\"originalName\":\"[workspaceids].ManagementGroupName\",\"mergedName\":\"Workspace IDs\",\"fromId\":\"c42c05a0-f832-47ad-a723-39e021a0006b\"},{\"originalName\":\"[allworkspaces].id\",\"mergedName\":\"id\",\"fromId\":\"c42c05a0-f832-47ad-a723-39e021a0006b\"},{\"originalName\":\"[allworkspaces].name\",\"mergedName\":\"name\",\"fromId\":\"c42c05a0-f832-47ad-a723-39e021a0006b\"},{\"originalName\":\"[allworkspaces].WSID\",\"mergedName\":\"WSID\",\"fromId\":\"c42c05a0-f832-47ad-a723-39e021a0006b\"}]}",
+        "size": 0,
+        "queryType": 7
+      },
+      "conditionalVisibility": {
+        "parameterName": "Computer",
+        "comparison": "isNotEqualTo"
+      },
+      "name": "query - 6"
+    }
+  ],
+  "fallbackResourceIds": [
+    "Azure Monitor"
+  ],
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}
