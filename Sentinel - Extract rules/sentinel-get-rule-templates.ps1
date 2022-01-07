@@ -20,4 +20,4 @@ If (Test-Path $SavetoFile){
 }
 
 
-get-azsentinelalertruletemplate -ResourceGroupName "$ResourceGroup" -WorkspaceName "$WorkspaceName" | Select-Object DisplayName, Status, Kind, RequiredDataConnectors, Severity | Export-Csv $SavetoFile
+get-azsentinelalertruletemplate -ResourceGroupName "$ResourceGroup" -WorkspaceName "$WorkspaceName" | Select-Object DisplayName, Status, Kind, RequiredDataConnectors, Severity | Export-Csv $SavetoFile -NoTypeInformation

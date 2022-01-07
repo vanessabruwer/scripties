@@ -21,5 +21,5 @@ If (Test-Path $SavetoFile){
 }
 
 
-get-azsentinelalertrule -ResourceGroupName "$ResourceGroup" -WorkspaceName "$WorkspaceName" | Select-Object DisplayName, Enabled, ProductFilter, Kind | Export-Csv $SavetoFile
+get-azsentinelalertrule -ResourceGroupName "$ResourceGroup" -WorkspaceName "$WorkspaceName" | Select-Object DisplayName, Enabled, ProductFilter, Kind | Export-Csv $SavetoFile -NoTypeInformation
 
