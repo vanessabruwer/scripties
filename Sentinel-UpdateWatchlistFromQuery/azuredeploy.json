@@ -1,216 +1,212 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
-      "Azure Sentinel Connection": {
-        "type": "string",
-        "defaultValue": "azuresentinel-1"
-      },
-      "Azure Sentinel Display Connection": {
-        "type": "string",
-        "defaultValue": "vabruwer@microsoft.com"
-      },
-      "Azure Monitor Connection": {
-        "type": "string",
-        "defaultValue": "azuremonitorlogs"
-      },
-      "Azure Monitor Connection DisplayName": {
-        "type": "string",
-        "defaultValue": "vabruwer@microsoft.com"
-      },
-      "Watchlist Name" :{
-        "type": "string",
-        "defaultValue": "Watchlist Display name"
-      },
-      "LogicAppLocation": {
-        "type": "string",
-        "minLength": 1,
-        "allowedValues": [
-          "[resourceGroup().location]",
-          "eastasia",
-          "southeastasia",
-          "centralus",
-          "eastus",
-          "eastus2",
-          "westus",
-          "northcentralus",
-          "southcentralus",
-          "northeurope",
-          "westeurope",
-          "japanwest",
-          "japaneast",
-          "brazilsouth",
-          "australiaeast",
-          "australiasoutheast",
-          "southindia",
-          "centralindia",
-          "westindia",
-          "jioindiawest",
-          "canadacentral",
-          "canadaeast",
-          "uksouth",
-          "ukwest",
-          "westcentralus",
-          "westus2",
-          "koreacentral",
-          "koreasouth",
-          "francecentral",
-          "francesouth",
-          "uaecentral",
-          "uaenorth",
-          "southafricanorth",
-          "southafricawest",
-          "switzerlandnorth",
-          "switzerlandwest",
-          "germanynorth",
-          "germanywestcentral",
-          "norwaywest",
-          "norwayeast",
-          "brazilsoutheast",
-          "westus3"
-        ],
-        "defaultValue": "westeurope"
-      },
-      "LogicAppName": {
-        "type": "string",
-        "minLength": 1,
-        "defaultValue": "sentinel-update-watchlist-from-query"
-      }
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "azuresentinel_1_Connection_Name": {
+      "type": "string",
+      "defaultValue": "azuresentinel-1"
     },
-    "variables": {},
-    "resources": [
-      {
-        "properties": {
-          "state": "Enabled",
-          "definition": {
-            "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
-            "actions": {
-              "For_each": {
-                "type": "Foreach",
-                "foreach": "@body('Run_query_and_list_results')?['value']",
-                "actions": {
-                  "Watchlists_-_Add_a_new_watchlist_item": {
-                    "type": "ApiConnection",
-                    "inputs": {
-                      "host": {
-                        "connection": {
-                          "name": "@parameters('$connections')['azuresentinel']['connectionId']"
-                        }
-                      },
-                      "method": "put",
-                      "body": {
-                        "UserDisplayName": "@items('For_each')?['UserDisplayName']",
-                        "UserPrincipalName": "@items('For_each')?['UserPrincipalName']"
-                      },
-                      "path": "/Watchlists/subscriptions/@{encodeURIComponent('')}/resourceGroups/@{encodeURIComponent('')}/workspaces/@{encodeURIComponent('')}/watchlists/@{encodeURIComponent('[parameters('Watchlist Name')]')}/watchlistItem"
+    "azuresentinel_1_Connection_DisplayName": {
+      "type": "string",
+      "defaultValue": "vabruwer@microsoft.com"
+    },
+    "azuremonitorlogs_1_Connection_Name": {
+      "type": "string",
+      "defaultValue": "azuremonitorlogs"
+    },
+    "azuremonitorlogs_1_Connection_DisplayName": {
+      "type": "string",
+      "defaultValue": "vabruwer@microsoft.com"
+    },
+    "LogicAppLocation": {
+      "type": "string",
+      "minLength": 1,
+      "allowedValues": [
+        "[resourceGroup().location]",
+        "eastasia",
+        "southeastasia",
+        "centralus",
+        "eastus",
+        "eastus2",
+        "westus",
+        "northcentralus",
+        "southcentralus",
+        "northeurope",
+        "westeurope",
+        "japanwest",
+        "japaneast",
+        "brazilsouth",
+        "australiaeast",
+        "australiasoutheast",
+        "southindia",
+        "centralindia",
+        "westindia",
+        "jioindiawest",
+        "canadacentral",
+        "canadaeast",
+        "uksouth",
+        "ukwest",
+        "westcentralus",
+        "westus2",
+        "koreacentral",
+        "koreasouth",
+        "francecentral",
+        "francesouth",
+        "uaecentral",
+        "uaenorth",
+        "southafricanorth",
+        "southafricawest",
+        "switzerlandnorth",
+        "switzerlandwest",
+        "germanynorth",
+        "germanywestcentral",
+        "norwaywest",
+        "norwayeast",
+        "brazilsoutheast",
+        "westus3"
+      ],
+      "defaultValue": "westeurope"
+    },
+    "LogicAppName": {
+      "type": "string",
+      "minLength": 1,
+      "defaultValue": "sentinel-update-watchlist-from-query"
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "properties": {
+        "state": "Enabled",
+        "definition": {
+          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+          "actions": {
+            "For_each": {
+              "type": "Foreach",
+              "foreach": "@body('Run_query_and_list_results')?['value']",
+              "actions": {
+                "Watchlists_-_Add_a_new_watchlist_item": {
+                  "type": "ApiConnection",
+                  "inputs": {
+                    "host": {
+                      "connection": {
+                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                      }
                     },
-                    "runAfter": {}
-                  }
-                },
-                "runAfter": {
-                  "Run_query_and_list_results": [
-                    "Succeeded"
-                  ]
+                    "method": "put",
+                    "body": {
+                      "UserDisplayName": "@items('For_each')?['UserDisplayName']",
+                      "UserPrincipalName": "@items('For_each')?['UserPrincipalName']"
+                    },
+                    "path": "/Watchlists/subscriptions/@{encodeURIComponent('88671c80-9061-47ae-bca2-f66482c60788')}/resourceGroups/@{encodeURIComponent('wax-monitoring-rg')}/workspaces/@{encodeURIComponent('431c910b-ab9f-40e3-a5e0-e234f6a2fffc')}/watchlists/@{encodeURIComponent('AADFailedLogonUsers')}/watchlistItem"
+                  },
+                  "runAfter": {}
                 }
               },
-              "Run_query_and_list_results": {
-                "runAfter": {},
-                "type": "ApiConnection",
-                "inputs": {
-                  "body": "SigninLogs \n| extend errorCode = tostring(Status.errorCode)\n| where errorCode <> 0\n| distinct UserPrincipalName, UserDisplayName",
-                  "host": {
-                    "connection": {
-                      "name": "@parameters('$connections')['azuremonitorlogs']['connectionId']"
-                    }
-                  },
-                  "method": "post",
-                  "path": "/queryData",
-                  "queries": {
-                    "resourcegroups": "",
-                    "resourcename": "",
-                    "resourcetype": "",
-                    "subscriptions": "",
-                    "timerange": "Last 24 hours"
+              "runAfter": {
+                "Run_query_and_list_results": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Run_query_and_list_results": {
+              "runAfter": {},
+              "type": "ApiConnection",
+              "inputs": {
+                "body": "SigninLogs \n| extend errorCode = tostring(Status.errorCode)\n| where errorCode <> 0\n| distinct UserPrincipalName, UserDisplayName",
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['azuremonitorlogs']['connectionId']"
                   }
-                }
-              }
-            },
-            "parameters": {
-              "$connections": {
-                "defaultValue": {},
-                "type": "Object"
-              }
-            },
-            "triggers": {
-              "Recurrence": {
-                "type": "Recurrence",
-                "recurrence": {
-                  "frequency": "Hour",
-                  "interval": 4
                 },
-                "evaluatedRecurrence": {
-                  "frequency": "Hour",
-                  "interval": 4
-                }
-              }
-            },
-            "contentVersion": "1.0.0.0",
-            "outputs": {}
-          },
-          "parameters": {
-            "$connections": {
-              "value": {
-                "azuresentinel": {
-                  "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', 'westeurope', '/managedApis/', 'azuresentinel')]",
-                  "connectionId": "[resourceId('Microsoft.Web/connections', parameters('Azure Sentinel Connection'))]",
-                  "connectionName": "[parameters('Azure Sentinel Connection')]"
-                },
-                "azuremonitorlogs": {
-                  "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', 'westeurope', '/managedApis/', 'azuremonitorlogs')]",
-                  "connectionId": "[resourceId('Microsoft.Web/connections', parameters('Azure Monitor Connection'))]",
-                  "connectionName": "[parameters('Azure Monitor Connection')]"
+                "method": "post",
+                "path": "/queryData",
+                "queries": {
+                  "resourcegroups": "SOC",
+                  "resourcename": "CyberSecuritySOC",
+                  "resourcetype": "Log Analytics Workspace",
+                  "subscriptions": "d1d8779d-38d7-4f06-91db-9cbc8de0176f",
+                  "timerange": "Last 24 hours"
                 }
               }
             }
+          },
+          "parameters": {
+            "$connections": {
+              "defaultValue": {},
+              "type": "Object"
+            }
+          },
+          "triggers": {
+            "Recurrence": {
+              "type": "Recurrence",
+              "recurrence": {
+                "frequency": "Hour",
+                "interval": 4
+              },
+              "evaluatedRecurrence": {
+                "frequency": "Hour",
+                "interval": 4
+              }
+            }
+          },
+          "contentVersion": "1.0.0.0",
+          "outputs": {}
+        },
+        "parameters": {
+          "$connections": {
+            "value": {
+              "azuresentinel": {
+                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', 'westeurope', '/managedApis/', 'azuresentinel')]",
+                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('azuresentinel_1_Connection_Name'))]",
+                "connectionName": "[parameters('azuresentinel_1_Connection_Name')]"
+              },
+              "azuremonitorlogs": {
+                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', 'westeurope', '/managedApis/', 'azuremonitorlogs')]",
+                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('azuremonitorlogs_1_Connection_Name'))]",
+                "connectionName": "[parameters('azuremonitorlogs_1_Connection_Name')]"
+              }
+            }
           }
-        },
-        "name": "[parameters('LogicAppName')]",
-        "type": "Microsoft.Logic/workflows",
-        "location": "[parameters('LogicAppLocation')]",
-        "tags": {
-          "Department": "Contoso",
-          "displayName": "LogicApp"
-        },
-        "apiVersion": "2016-06-01",
-        "dependsOn": [
-          "[resourceId('Microsoft.Web/connections', parameters('Azure Sentinel Connection'))]",
-          "[resourceId('Microsoft.Web/connections', parameters('Azure Monitor Connection'))]"
-        ]
-      },
-      {
-        "type": "MICROSOFT.WEB/CONNECTIONS",
-        "apiVersion": "2018-07-01-preview",
-        "name": "[parameters('Azure Sentinel Connection')]",
-        "location": "westeurope",
-        "properties": {
-          "api": {
-            "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', 'westeurope', '/managedApis/', 'azuresentinel')]"
-          },
-          "displayName": "[parameters('Azure Sentinel Display Connection')]"
         }
       },
-      {
-        "type": "MICROSOFT.WEB/CONNECTIONS",
-        "apiVersion": "2018-07-01-preview",
-        "name": "[parameters('Azure Monitor Connection')]",
-        "location": "westeurope",
-        "properties": {
-          "api": {
-            "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', 'westeurope', '/managedApis/', 'azuremonitorlogs')]"
-          },
-          "displayName": "[parameters('Azure Monitor Connection DisplayName')]"
-        }
+      "name": "[parameters('LogicAppName')]",
+      "type": "Microsoft.Logic/workflows",
+      "location": "[parameters('LogicAppLocation')]",
+      "tags": {
+        "Department": "Contoso",
+        "displayName": "LogicApp"
+      },
+      "apiVersion": "2016-06-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/connections', parameters('azuresentinel_1_Connection_Name'))]",
+        "[resourceId('Microsoft.Web/connections', parameters('azuremonitorlogs_1_Connection_Name'))]"
+      ]
+    },
+    {
+      "type": "MICROSOFT.WEB/CONNECTIONS",
+      "apiVersion": "2018-07-01-preview",
+      "name": "[parameters('azuresentinel_1_Connection_Name')]",
+      "location": "westeurope",
+      "properties": {
+        "api": {
+          "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', 'westeurope', '/managedApis/', 'azuresentinel')]"
+        },
+        "displayName": "[parameters('azuresentinel_1_Connection_DisplayName')]"
       }
-    ],
-    "outputs": {}
-  }
+    },
+    {
+      "type": "MICROSOFT.WEB/CONNECTIONS",
+      "apiVersion": "2018-07-01-preview",
+      "name": "[parameters('azuremonitorlogs_1_Connection_Name')]",
+      "location": "westeurope",
+      "properties": {
+        "api": {
+          "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', 'westeurope', '/managedApis/', 'azuremonitorlogs')]"
+        },
+        "displayName": "[parameters('azuremonitorlogs_1_Connection_DisplayName')]"
+      }
+    }
+  ],
+  "outputs": {}
+}
