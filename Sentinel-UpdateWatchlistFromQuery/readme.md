@@ -20,3 +20,7 @@ Use this button to deploy the Logic App to your environment
 Once deployed, you will need to edit the connections as relevant for your environment:
 
 <img src="Screenshot 2022-07-06 152715.png">
+
+<img src="Screenshot 2022-07-06 153133.png">
+
+<img src="Screenshot 2022-07-06 153215.png">
