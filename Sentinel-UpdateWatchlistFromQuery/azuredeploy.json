@@ -4,11 +4,11 @@
   "parameters": {
     "azuresentinel_1_Connection_Name": {
       "type": "string",
-      "defaultValue": "azuresentinel-1"
+      "defaultValue": "azuresentinel"
     },
     "azuresentinel_1_Connection_DisplayName": {
       "type": "string",
-      "defaultValue": "vabruwer@microsoft.com"
+      "defaultValue": "Sentinel Connection"
     },
     "azuremonitorlogs_1_Connection_Name": {
       "type": "string",
@@ -16,7 +16,7 @@
     },
     "azuremonitorlogs_1_Connection_DisplayName": {
       "type": "string",
-      "defaultValue": "vabruwer@microsoft.com"
+      "defaultValue": "Azure Monitor Logs Connection"
     },
     "LogicAppLocation": {
       "type": "string",
@@ -98,7 +98,7 @@
                       "UserDisplayName": "@items('For_each')?['UserDisplayName']",
                       "UserPrincipalName": "@items('For_each')?['UserPrincipalName']"
                     },
-                    "path": "/Watchlists/subscriptions/@{encodeURIComponent('88671c80-9061-47ae-bca2-f66482c60788')}/resourceGroups/@{encodeURIComponent('wax-monitoring-rg')}/workspaces/@{encodeURIComponent('431c910b-ab9f-40e3-a5e0-e234f6a2fffc')}/watchlists/@{encodeURIComponent('AADFailedLogonUsers')}/watchlistItem"
+                    "path": "/Watchlists/subscriptions/@{encodeURIComponent('subscriptionid')}/resourceGroups/@{encodeURIComponent('workspace-resource-group')}/workspaces/@{encodeURIComponent('workspace-id')}/watchlists/@{encodeURIComponent('AADFailedLogonUsers')}/watchlistItem"
                   },
                   "runAfter": {}
                 }
@@ -122,10 +122,10 @@
                 "method": "post",
                 "path": "/queryData",
                 "queries": {
-                  "resourcegroups": "SOC",
-                  "resourcename": "CyberSecuritySOC",
+                  "resourcegroups": "RGName",
+                  "resourcename": "WorkspaceName",
                   "resourcetype": "Log Analytics Workspace",
-                  "subscriptions": "d1d8779d-38d7-4f06-91db-9cbc8de0176f",
+                  "subscriptions": "SubscriptionId",
                   "timerange": "Last 24 hours"
                 }
               }
