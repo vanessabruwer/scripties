@@ -2,6 +2,8 @@
 
 This sample playbook shows how you can update a Watchlist in Microsoft Sentinel based on the output of a KQL query.
 
+<img src="Screenshot 2022-07-07 113246.png">
+
 In this example, we are querying AAD Signin logs for all logon failures with this query:
 
 > SigninLogs 
@@ -10,7 +12,7 @@ In this example, we are querying AAD Signin logs for all logon failures with thi
 > | distinct UserPrincipalName, UserDisplayName
 
 
-It then updates a pre-created watchlist called AADFailedLogonUsers.
+It then updates a pre-created watchlist called AADFailedLogonUsers, if the entry does not already exist.
 
 
 Use this button to deploy the Logic App to your environment
@@ -24,3 +26,5 @@ Once deployed, you will need to edit the connections as relevant for your enviro
 <img src="Screenshot 2022-07-06 153133.png">
 
 <img src="Screenshot 2022-07-06 153215.png">
+
+<img src="Screenshot 2022-07-07 113638.png">
