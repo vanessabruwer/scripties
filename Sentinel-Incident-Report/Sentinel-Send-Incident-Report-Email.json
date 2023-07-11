@@ -1,0 +1,390 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "office365_1_Connection_Name": {
+      "type": "string",
+      "defaultValue": "office365"
+    },
+    "office365_1_Connection_DisplayName": {
+      "type": "string",
+      "defaultValue": "yourname@yourcompany.com"
+    },
+    "azuremonitorlogs_1_Connection_Name": {
+      "type": "string",
+      "defaultValue": "azuremonitorlogs-1"
+    },
+    "azuremonitorlogs_1_Connection_DisplayName": {
+      "type": "string",
+      "defaultValue": "yourname@yourcompany.com"
+    },
+    "LogicAppLocation": {
+      "type": "string",
+      "minLength": 1,
+      "allowedValues": [
+        "[resourceGroup().location]",
+        "australiaeast",
+        "australiasoutheast",
+        "brazilsouth",
+        "brazilsoutheast",
+        "canadacentral",
+        "canadaeast",
+        "centralindia",
+        "centralus",
+        "eastasia",
+        "eastus",
+        "eastus2",
+        "francecentral",
+        "francesouth",
+        "germanynorth",
+        "germanywestcentral",
+        "japaneast",
+        "japanwest",
+        "jioindiawest",
+        "koreacentral",
+        "koreasouth",
+        "northcentralus",
+        "northeurope",
+        "norwayeast",
+        "norwaywest",
+        "polandcentral",
+        "qatarcentral",
+        "southafricanorth",
+        "southafricawest",
+        "southcentralus",
+        "southeastasia",
+        "southindia",
+        "swedencentral",
+        "switzerlandnorth",
+        "switzerlandwest",
+        "uaecentral",
+        "uaenorth",
+        "uksouth",
+        "ukwest",
+        "westcentralus",
+        "westeurope",
+        "westindia",
+        "westus",
+        "westus2",
+        "westus3"
+      ],
+      "defaultValue": "northeurope"
+    },
+    "LogicAppName": {
+      "type": "string",
+      "minLength": 1,
+      "defaultValue": "Sentinel-AlertReportviaEmail"
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "properties": {
+        "state": "Enabled",
+        "definition": {
+          "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+          "actions": {
+            "Compose_Incidents_by_Severity_Pie_Image": {
+              "type": "Compose",
+              "inputs": "<img src=@{body('Run_query_and_visualize_results_-_Incidents_by_Severity_Pie')?['attachmentName']} />",
+              "runAfter": {
+                "Run_query_and_visualize_results_-_Incidents_by_Severity_Pie": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Compose_Incidents_by_Status_Pie": {
+              "type": "Compose",
+              "inputs": "<img src=@{body('Run_query_and_visualize_results_-_Incidents_by_Status_Pie')?['attachmentName']} />",
+              "runAfter": {
+                "Run_query_and_visualize_results_-_Incidents_by_Status_Pie": [
+                  "Succeeded"
+                ]
+              }
+            },
+            "Run_query_and_visualize_results_-_All_Incident_Count": {
+              "runAfter": {},
+              "type": "ApiConnection",
+              "inputs": {
+                "body": {
+                  "query": "SecurityIncident\n| summarize IncidentCount = count()",
+                  "timerange": {
+                    "relativeTimeRange": "Last 7 days"
+                  },
+                  "timerangetype": "2"
+                },
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['azuremonitorlogs']['connectionId']"
+                  }
+                },
+                "method": "post",
+                "path": "/visualizeQueryV2",
+                "queries": {
+                  "resourcegroups": "",
+                  "resourcename": "",
+                  "resourcetype": "Log Analytics Workspace",
+                  "subscriptions": "",
+                  "visType": "Html Table"
+                }
+              }
+            },
+            "Run_query_and_visualize_results_-_Incidents_by_Severity_Pie": {
+              "runAfter": {
+                "Run_query_and_visualize_results_-_All_Incident_Count": [
+                  "Succeeded"
+                ]
+              },
+              "type": "ApiConnection",
+              "inputs": {
+                "body": {
+                  "query": "SecurityIncident \n| summarize IncidentCount = count() by Severity",
+                  "timerange": {
+                    "relativeTimeRange": "Last 7 days"
+                  },
+                  "timerangetype": "2"
+                },
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['azuremonitorlogs']['connectionId']"
+                  }
+                },
+                "method": "post",
+                "path": "/visualizeQueryV2",
+                "queries": {
+                  "resourcegroups": "",
+                  "resourcename": "",
+                  "resourcetype": "Log Analytics Workspace",
+                  "subscriptions": "",
+                  "visType": "Pie Chart"
+                }
+              }
+            },
+            "Run_query_and_visualize_results_-_Incidents_by_Status_Pie": {
+              "runAfter": {
+                "Compose_Incidents_by_Severity_Pie_Image": [
+                  "Succeeded"
+                ]
+              },
+              "type": "ApiConnection",
+              "inputs": {
+                "body": {
+                  "query": "SecurityIncident \n| summarize Count = count() by Status",
+                  "timerange": {
+                    "relativeTimeRange": "Last 7 days"
+                  },
+                  "timerangetype": "2"
+                },
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['azuremonitorlogs']['connectionId']"
+                  }
+                },
+                "method": "post",
+                "path": "/visualizeQueryV2",
+                "queries": {
+                  "resourcegroups": "",
+                  "resourcename": "",
+                  "resourcetype": "Log Analytics Workspace",
+                  "subscriptions": "",
+                  "visType": "Pie Chart"
+                }
+              }
+            },
+            "Run_query_and_visualize_results_-_Responses": {
+              "runAfter": {
+                "Run_query_and_visualize_results_V2_-_Most_Common_Incidents": [
+                  "Succeeded"
+                ]
+              },
+              "type": "ApiConnection",
+              "inputs": {
+                "body": {
+                  "query": "SecurityIncident \n| extend Updatedby = case(ModifiedBy startswith \"Playbook\", \"Playbook\",\n                        ModifiedBy startswith \"Automation rule\", \"Automation rule\",\n                        ModifiedBy)\n| where Updatedby in (\"Playbook\", \"Automation rule\", \"Microsoft 365 Defender\", \"Alert updated\", \"Incident created from alert\", \"Alert Grouping\", \"Fusion\")\n| summarize Count = count() by Updatedby\n| order by Count",
+                  "timerange": {
+                    "relativeTimeRange": "Last 7 days"
+                  },
+                  "timerangetype": "2"
+                },
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['azuremonitorlogs']['connectionId']"
+                  }
+                },
+                "method": "post",
+                "path": "/visualizeQueryV2",
+                "queries": {
+                  "resourcegroups": "",
+                  "resourcename": "",
+                  "resourcetype": "Log Analytics Workspace",
+                  "subscriptions": "",
+                  "visType": "Html Table"
+                }
+              }
+            },
+            "Run_query_and_visualize_results_V2_-_Most_Common_Incidents": {
+              "runAfter": {
+                "Compose_Incidents_by_Status_Pie": [
+                  "Succeeded"
+                ]
+              },
+              "type": "ApiConnection",
+              "inputs": {
+                "body": {
+                  "query": "SecurityIncident \n| summarize CommonIncidents = count() by Title\n| top 10 by CommonIncidents",
+                  "timerange": {
+                    "relativeTimeRange": "Last 7 days"
+                  },
+                  "timerangetype": "2"
+                },
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['azuremonitorlogs']['connectionId']"
+                  }
+                },
+                "method": "post",
+                "path": "/visualizeQueryV2",
+                "queries": {
+                  "resourcegroups": "",
+                  "resourcename": "",
+                  "resourcetype": "Log Analytics Workspace",
+                  "subscriptions": "",
+                  "visType": "Html Table"
+                }
+              }
+            },
+            "Send_an_email_(V2)": {
+              "type": "ApiConnection",
+              "inputs": {
+                "host": {
+                  "connection": {
+                    "name": "@parameters('$connections')['office365']['connectionId']"
+                  }
+                },
+                "method": "post",
+                "body": {
+                  "To": "vanessa.bruwer@microsoft.com",
+                  "Subject": "Sentinel Incident Report - @{addDays(utcNow(), -7, 'dddd dd MMMM yyyy')} to @{formatdatetime(utcNow(), 'dddd dd MMMM yyyy')}",
+                  "Body": "<p><span style=\"font-size: 14px\"><strong>Sentinel Incident report for the last 7 days</strong></span><br>\n<br>\n<strong>Start time:</strong> @{addDays(utcNow(), -7, 'dddd dd MMMM yyyy')}<br>\n<strong>End time:</strong> @{formatdatetime(utcNow(), 'dddd dd MMMM yyyy')}<br>\n<br>\n<strong>Incidents raised in the last 7 days:</strong><br>\n@{base64ToString(body('Run_query_and_visualize_results_-_All_Incident_Count')?['attachmentContent'])}<br>\n<br>\n<strong>Incidents by severity:</strong><br>\n@{outputs('Compose_Incidents_by_Severity_Pie_Image')}<br>\n<br>\n<strong>Incidents by status:</strong><br>\n@{outputs('Compose_Incidents_by_Status_Pie')}<br>\n<br>\n<strong>Most common incidents:</strong><br>\n@{base64ToString(body('Run_query_and_visualize_results_V2_-_Most_Common_Incidents')?['attachmentContent'])}<br>\n<br>\n<strong>Most common incident responses:</strong><br>\n@{base64ToString(body('Run_query_and_visualize_results_-_Responses')?['attachmentContent'])}<br>\n</p>",
+                  "Attachments": [
+                    {
+                      "ContentBytes": "@{body('Run_query_and_visualize_results_-_Incidents_by_Severity_Pie')?['attachmentContent']}",
+                      "Name": "@body('Run_query_and_visualize_results_-_Incidents_by_Severity_Pie')?['attachmentName']"
+                    },
+                    {
+                      "ContentBytes": "@{body('Run_query_and_visualize_results_-_Incidents_by_Status_Pie')?['attachmentContent']}",
+                      "Name": "@body('Run_query_and_visualize_results_-_Incidents_by_Status_Pie')?['attachmentName']"
+                    }
+                  ],
+                  "Importance": "Normal"
+                },
+                "path": "/v2/Mail"
+              },
+              "runAfter": {
+                "Run_query_and_visualize_results_-_Responses": [
+                  "Succeeded"
+                ]
+              }
+            }
+          },
+          "parameters": {
+            "$connections": {
+              "defaultValue": {},
+              "type": "Object"
+            }
+          },
+          "triggers": {
+            "Recurrence": {
+              "type": "Recurrence",
+              "recurrence": {
+                "frequency": "Week",
+                "interval": 1,
+                "schedule": {
+                  "weekDays": [
+                    "Friday"
+                  ],
+                  "hours": [
+                    "8"
+                  ],
+                  "minutes": [
+                    0
+                  ]
+                }
+              },
+              "evaluatedRecurrence": {
+                "frequency": "Week",
+                "interval": 1,
+                "schedule": {
+                  "hours": [
+                    "8"
+                  ],
+                  "minutes": [
+                    0
+                  ],
+                  "weekDays": [
+                    "Friday"
+                  ]
+                }
+              }
+            }
+          },
+          "contentVersion": "1.0.0.0",
+          "outputs": {}
+        },
+        "parameters": {
+          "$connections": {
+            "value": {
+              "azuremonitorlogs": {
+                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', 'northeurope', '/managedApis/', 'azuremonitorlogs')]",
+                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('azuremonitorlogs_1_Connection_Name'))]",
+                "connectionName": "[parameters('azuremonitorlogs_1_Connection_Name')]"
+              },
+              "office365": {
+                "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', 'northeurope', '/managedApis/', 'office365')]",
+                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('office365_1_Connection_Name'))]",
+                "connectionName": "[parameters('office365_1_Connection_Name')]"
+              }
+            }
+          }
+        }
+      },
+      "name": "[parameters('LogicAppName')]",
+      "type": "Microsoft.Logic/workflows",
+      "location": "[parameters('LogicAppLocation')]",
+      "tags": {
+        "Function": "Security",
+        "displayName": "LogicApp"
+      },
+      "apiVersion": "2016-06-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/connections', parameters('azuremonitorlogs_1_Connection_Name'))]",
+        "[resourceId('Microsoft.Web/connections', parameters('office365_1_Connection_Name'))]"
+      ]
+    },
+    {
+      "type": "MICROSOFT.WEB/CONNECTIONS",
+      "apiVersion": "2018-07-01-preview",
+      "name": "[parameters('office365_1_Connection_Name')]",
+      "location": "northeurope",
+      "properties": {
+        "api": {
+          "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', 'northeurope', '/managedApis/', 'office365')]"
+        },
+        "displayName": "[parameters('office365_1_Connection_DisplayName')]"
+      }
+    },
+    {
+      "type": "MICROSOFT.WEB/CONNECTIONS",
+      "apiVersion": "2018-07-01-preview",
+      "name": "[parameters('azuremonitorlogs_1_Connection_Name')]",
+      "location": "northeurope",
+      "properties": {
+        "api": {
+          "id": "[concat(subscription().id, '/providers/Microsoft.Web/locations/', 'northeurope', '/managedApis/', 'azuremonitorlogs')]"
+        },
+        "displayName": "[parameters('azuremonitorlogs_1_Connection_DisplayName')]"
+      }
+    }
+  ],
+  "outputs": {}
+}

@@ -1,0 +1,824 @@
+{
+    "version": "Notebook/1.0",
+    "items": [
+      {
+        "type": 1,
+        "content": {
+          "json": "# Sentinel Incident Workbook"
+        },
+        "name": "headertext"
+      },
+      {
+        "type": 9,
+        "content": {
+          "version": "KqlParameterItem/1.0",
+          "crossComponentResources": [
+            "{Subscription}"
+          ],
+          "parameters": [
+            {
+              "id": "b859a03f-2283-43dd-8536-42714bbfced6",
+              "version": "KqlParameterItem/1.0",
+              "name": "Subscription",
+              "type": 6,
+              "isRequired": true,
+              "multiSelect": true,
+              "quote": "'",
+              "delimiter": ",",
+              "query": "resourcecontainers\r\n| where type == \"microsoft.resources/subscriptions\"\r\n| parse id with \"/subscriptions/\" subscriptionId\r\n| join ( resources\r\n| where type =~ 'microsoft.operationalinsights/workspaces'\r\n| summarize by subscriptionId\r\n) on subscriptionId\r\n| project value = subscriptionId, label = name, selected = true",
+              "crossComponentResources": [
+                "value::selected"
+              ],
+              "typeSettings": {
+                "additionalResourceOptions": [
+                  "value::all"
+                ],
+                "showDefault": false
+              },
+              "queryType": 1,
+              "resourceType": "microsoft.resourcegraph/resources",
+              "value": [
+                "/subscriptions/88671c80-9061-47ae-bca2-f66482c60788"
+              ]
+            },
+            {
+              "id": "8df9c309-e7d1-43ad-b2ad-2d190c0c4e60",
+              "version": "KqlParameterItem/1.0",
+              "name": "Workspace",
+              "type": 5,
+              "isRequired": true,
+              "multiSelect": true,
+              "quote": "'",
+              "delimiter": ",",
+              "query": "resources\r\n| where type == \"microsoft.operationalinsights/workspaces\"\r\n| project wsid = tolower(id), name\r\n| join (\r\nresources\r\n| where type == \"microsoft.operationsmanagement/solutions\"\r\n| extend product = plan.product,\r\n        wsid = tolower(properties.workspaceResourceId)\r\n| where product == \"OMSGallery/SecurityInsights\"\r\n| project wsid\r\n) on wsid\r\n| project value = wsid, label = name, selected = true",
+              "crossComponentResources": [
+                "{Subscription}"
+              ],
+              "typeSettings": {
+                "additionalResourceOptions": [
+                  "value::all"
+                ],
+                "showDefault": false
+              },
+              "queryType": 1,
+              "resourceType": "microsoft.resourcegraph/resources"
+            },
+            {
+              "id": "04a8ead2-1fb2-4666-a7b0-6d92e3c29b46",
+              "version": "KqlParameterItem/1.0",
+              "name": "TimeRange",
+              "type": 4,
+              "typeSettings": {
+                "selectableValues": [
+                  {
+                    "durationMs": 14400000
+                  },
+                  {
+                    "durationMs": 43200000
+                  },
+                  {
+                    "durationMs": 86400000
+                  },
+                  {
+                    "durationMs": 172800000
+                  },
+                  {
+                    "durationMs": 259200000
+                  },
+                  {
+                    "durationMs": 604800000
+                  },
+                  {
+                    "durationMs": 1209600000
+                  },
+                  {
+                    "durationMs": 2592000000
+                  },
+                  {
+                    "durationMs": 5184000000
+                  },
+                  {
+                    "durationMs": 7776000000
+                  }
+                ],
+                "allowCustom": true
+              },
+              "value": {
+                "durationMs": 604800000
+              }
+            }
+          ],
+          "style": "pills",
+          "queryType": 1,
+          "resourceType": "microsoft.resourcegraph/resources"
+        },
+        "name": "Parameters"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "This workbook provide a all up view on Incidents for incident management purposes, and identifying noisy incidents.",
+          "style": "info"
+        },
+        "name": "abouttext"
+      },
+      {
+        "type": 11,
+        "content": {
+          "version": "LinkItem/1.0",
+          "style": "tabs",
+          "links": [
+            {
+              "id": "171ec6b0-45d1-4095-a664-e27a5a0e8e5d",
+              "cellValue": "selectedTab",
+              "linkTarget": "parameter",
+              "linkLabel": "Overview",
+              "subTarget": "Overview",
+              "preText": "Overview Tab",
+              "style": "link"
+            },
+            {
+              "id": "81a835f7-a7a7-4fc6-8787-94f3b9f62dd0",
+              "cellValue": "selectedTab",
+              "linkTarget": "parameter",
+              "linkLabel": "Incident Trends",
+              "subTarget": "trends",
+              "style": "link"
+            },
+            {
+              "id": "4662b833-a076-434b-856c-86c69d92b03a",
+              "cellValue": "selectedTab",
+              "linkTarget": "parameter",
+              "linkLabel": "Incident Responses",
+              "subTarget": "response",
+              "style": "link"
+            }
+          ]
+        },
+        "name": "links - 3"
+      },
+      {
+        "type": 12,
+        "content": {
+          "version": "NotebookGroup/1.0",
+          "groupType": "editable",
+          "items": [
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "SecurityIncident\r\n| extend text = \"All Incidents - {TimeRange:label}\"\r\n| summarize count() by text",
+                "size": 4,
+                "timeContextFromParameter": "TimeRange",
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "crossComponentResources": [
+                  "{Workspace}"
+                ],
+                "visualization": "tiles",
+                "tileSettings": {
+                  "titleContent": {
+                    "columnMatch": "text",
+                    "formatter": 1
+                  },
+                  "leftContent": {
+                    "columnMatch": "count_",
+                    "formatter": 12,
+                    "formatOptions": {
+                      "palette": "auto"
+                    }
+                  },
+                  "showBorder": true
+                }
+              },
+              "customWidth": "30",
+              "name": "allincidentstile"
+            },
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "SecurityIncident \r\n| summarize Count = count() by Status",
+                "size": 1,
+                "title": "Incidents by Status",
+                "noDataMessage": "No incidents in {TimeRange:Label}",
+                "timeContextFromParameter": "TimeRange",
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "crossComponentResources": [
+                  "{Workspace}"
+                ],
+                "visualization": "piechart",
+                "gridSettings": {
+                  "formatters": [
+                    {
+                      "columnMatch": "Count",
+                      "formatter": 4,
+                      "formatOptions": {
+                        "palette": "greenRed"
+                      }
+                    }
+                  ],
+                  "filter": true
+                },
+                "chartSettings": {
+                  "showMetrics": false,
+                  "showLegend": true,
+                  "seriesLabelSettings": [
+                    {
+                      "seriesName": "New",
+                      "color": "yellow"
+                    },
+                    {
+                      "seriesName": "Closed",
+                      "color": "gray"
+                    },
+                    {
+                      "seriesName": "Active",
+                      "color": "blue"
+                    }
+                  ]
+                }
+              },
+              "customWidth": "35",
+              "name": "incidentbystatus"
+            },
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "SecurityIncident \r\n| summarize Count = count() by Severity",
+                "size": 1,
+                "title": "Incidents by Severity",
+                "noDataMessage": "No incidents in {TimeRange:Label}",
+                "timeContextFromParameter": "TimeRange",
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "crossComponentResources": [
+                  "{Workspace}"
+                ],
+                "visualization": "piechart",
+                "gridSettings": {
+                  "formatters": [
+                    {
+                      "columnMatch": "Count",
+                      "formatter": 4,
+                      "formatOptions": {
+                        "palette": "greenRed"
+                      }
+                    }
+                  ],
+                  "filter": true
+                },
+                "chartSettings": {
+                  "showMetrics": false,
+                  "showLegend": true,
+                  "seriesLabelSettings": [
+                    {
+                      "seriesName": "Low",
+                      "color": "yellow"
+                    },
+                    {
+                      "seriesName": "Medium",
+                      "color": "orange"
+                    },
+                    {
+                      "seriesName": "High",
+                      "color": "redBright"
+                    },
+                    {
+                      "seriesName": "Informational",
+                      "color": "grayBlue"
+                    }
+                  ]
+                }
+              },
+              "customWidth": "35",
+              "name": "incidentbyseverity"
+            },
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "SecurityIncident \r\n| where Status == \"New\"\r\n| summarize count() by bin(TimeGenerated, {TimeRange:grain})",
+                "size": 0,
+                "title": "Incident Frequency - {TimeRange:label}",
+                "timeContextFromParameter": "TimeRange",
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "crossComponentResources": [
+                  "{Workspace}"
+                ],
+                "visualization": "areachart"
+              },
+              "name": "incidentsovertimerange"
+            }
+          ]
+        },
+        "conditionalVisibility": {
+          "parameterName": "selectedTab",
+          "comparison": "isEqualTo",
+          "value": "Overview"
+        },
+        "name": "Overview Group"
+      },
+      {
+        "type": 12,
+        "content": {
+          "version": "NotebookGroup/1.0",
+          "groupType": "editable",
+          "items": [
+            {
+              "type": 1,
+              "content": {
+                "json": "# Closed Incidents by Classification"
+              },
+              "name": "ClosedIncidentsExplainHeader"
+            },
+            {
+              "type": 1,
+              "content": {
+                "json": "Select the Classification on the left hand side to the detail about the incidents closed with that classification in the {TimeRange:label}\r\n\r\nOnly the first 1000 instances of the incident in the selected time range will displayed. You can click on the ... to show the Query button and to view the full list.",
+                "style": "info"
+              },
+              "name": "ClosedIncidentsExplaintext"
+            },
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "SecurityIncident \r\n| where Status == \"Closed\"\r\n| summarize count() by Classification",
+                "size": 1,
+                "timeContextFromParameter": "TimeRange",
+                "exportFieldName": "Classification",
+                "exportParameterName": "Classification",
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "crossComponentResources": [
+                  "{Workspace}"
+                ],
+                "visualization": "table",
+                "gridSettings": {
+                  "formatters": [
+                    {
+                      "columnMatch": "count_",
+                      "formatter": 3,
+                      "formatOptions": {
+                        "palette": "coldHot",
+                        "customColumnWidthSetting": "20ch"
+                      }
+                    }
+                  ],
+                  "labelSettings": [
+                    {
+                      "columnId": "count_",
+                      "label": "Incidents"
+                    }
+                  ]
+                }
+              },
+              "customWidth": "20",
+              "name": "closedincidentsbyclassification"
+            },
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "SecurityIncident \r\n| where Classification == \"{Classification}\"\r\n| extend alertsCount = tostring(AdditionalData.alertsCount)\r\n| extend bookmarksCount = tostring(AdditionalData.bookmarksCount)\r\n| extend commentsCount = tostring(AdditionalData.commentsCount)\r\n| extend TimeToClose = todouble(ClosedTime-CreatedTime)\r\n| project TimeGenerated, TenantId, Title, Description, Severity, ClassificationComment, ClassificationReason, ProviderName, Alerts = alertsCount, Bookmarks = bookmarksCount, Comments = commentsCount, TimeToClose",
+                "size": 0,
+                "showAnalytics": true,
+                "timeContextFromParameter": "TimeRange",
+                "showExportToExcel": true,
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "crossComponentResources": [
+                  "{Workspace}"
+                ],
+                "gridSettings": {
+                  "formatters": [
+                    {
+                      "columnMatch": "TenantId",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "Title",
+                      "formatter": 0,
+                      "formatOptions": {
+                        "customColumnWidthSetting": "30ch"
+                      }
+                    },
+                    {
+                      "columnMatch": "Severity",
+                      "formatter": 18,
+                      "formatOptions": {
+                        "thresholdsOptions": "icons",
+                        "thresholdsGrid": [
+                          {
+                            "operator": "==",
+                            "thresholdValue": "Low",
+                            "representation": "Sev3",
+                            "text": "{0}{1}"
+                          },
+                          {
+                            "operator": "==",
+                            "thresholdValue": "Medium",
+                            "representation": "Sev2",
+                            "text": "{0}{1}"
+                          },
+                          {
+                            "operator": "==",
+                            "thresholdValue": "High",
+                            "representation": "Sev1",
+                            "text": "{0}{1}"
+                          },
+                          {
+                            "operator": "Default",
+                            "thresholdValue": null,
+                            "representation": "Sev4",
+                            "text": "{0}{1}"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "columnMatch": "ClassificationComment",
+                      "formatter": 0,
+                      "formatOptions": {
+                        "customColumnWidthSetting": "30ch"
+                      }
+                    },
+                    {
+                      "columnMatch": "ProviderName",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "TimeToClose",
+                      "formatter": 18,
+                      "formatOptions": {
+                        "thresholdsOptions": "colors",
+                        "thresholdsGrid": [
+                          {
+                            "operator": "<",
+                            "thresholdValue": "5",
+                            "representation": null,
+                            "text": "{0}{1}"
+                          },
+                          {
+                            "operator": ">",
+                            "thresholdValue": "100",
+                            "representation": "redBright",
+                            "text": "{0}{1}"
+                          },
+                          {
+                            "operator": "Default",
+                            "thresholdValue": null,
+                            "representation": null,
+                            "text": "{0}{1}"
+                          }
+                        ]
+                      },
+                      "numberFormat": {
+                        "unit": 23,
+                        "options": {
+                          "style": "decimal"
+                        }
+                      }
+                    }
+                  ],
+                  "rowLimit": 500,
+                  "filter": true
+                }
+              },
+              "customWidth": "80",
+              "conditionalVisibility": {
+                "parameterName": "Classification",
+                "comparison": "isNotEqualTo"
+              },
+              "name": "IncidentDetailbyClassification"
+            },
+            {
+              "type": 1,
+              "content": {
+                "json": "# Most Common Incidents"
+              },
+              "name": "text - 3"
+            },
+            {
+              "type": 1,
+              "content": {
+                "json": "Select the incident name on the left to show the timeline and detail for this incident.\r\n\r\nOnly the first 1000 instances of the incident in the selected time range will displayed. You can click on the Query button to view the full list.",
+                "style": "info"
+              },
+              "name": "CommonIncidentsExplaintext"
+            },
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "SecurityIncident \r\n| summarize Count = count() by Title\r\n| top 10 by Count",
+                "size": 0,
+                "timeContextFromParameter": "TimeRange",
+                "exportFieldName": "Title",
+                "exportParameterName": "Title",
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "crossComponentResources": [
+                  "{Workspace}"
+                ],
+                "gridSettings": {
+                  "formatters": [
+                    {
+                      "columnMatch": "Count",
+                      "formatter": 3,
+                      "formatOptions": {
+                        "palette": "coldHot"
+                      }
+                    }
+                  ]
+                }
+              },
+              "customWidth": "50",
+              "name": "top10incidents"
+            },
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "SecurityIncident \r\n| where Title == \"{Title}\"\r\n| summarize count() by bin(TimeGenerated,{TimeRange:grain}), Title, Status",
+                "size": 0,
+                "title": "Timeline for {Title}",
+                "timeContextFromParameter": "TimeRange",
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "crossComponentResources": [
+                  "{Workspace}"
+                ],
+                "visualization": "linechart",
+                "chartSettings": {
+                  "group": "Status",
+                  "createOtherGroup": null
+                }
+              },
+              "customWidth": "50",
+              "conditionalVisibility": {
+                "parameterName": "Title",
+                "comparison": "isNotEqualTo"
+              },
+              "name": "IncidentDetailTimeline"
+            },
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "SecurityIncident \r\n| where Title == \"{Title}\"\r\n| extend assignedTo = tostring(Owner.assignedTo)\r\n| extend Alerts = tostring(AdditionalData.alertsCount)\r\n| extend Bookmarks = tostring(AdditionalData.bookmarksCount)\r\n| extend Comments = tostring(AdditionalData.commentsCount)\r\n| extend Text = \"🔗Link\"\r\n| project IncidentUrl, Text, TimeGenerated, Title, Description, Severity, Status, assignedTo, Alerts, Comments, Bookmarks",
+                "size": 0,
+                "showAnalytics": true,
+                "title": "{Title}",
+                "timeContextFromParameter": "TimeRange",
+                "showExportToExcel": true,
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "crossComponentResources": [
+                  "{Workspace}"
+                ],
+                "gridSettings": {
+                  "formatters": [
+                    {
+                      "columnMatch": "IncidentUrl",
+                      "formatter": 5,
+                      "formatOptions": {
+                        "linkTarget": "Url"
+                      }
+                    },
+                    {
+                      "columnMatch": "Text",
+                      "formatter": 1,
+                      "formatOptions": {
+                        "linkColumn": "IncidentUrl",
+                        "linkTarget": "Url"
+                      }
+                    }
+                  ],
+                  "rowLimit": 1000,
+                  "filter": true,
+                  "labelSettings": [
+                    {
+                      "columnId": "Text",
+                      "label": "Link to Incident"
+                    }
+                  ]
+                }
+              },
+              "conditionalVisibility": {
+                "parameterName": "Title",
+                "comparison": "isNotEqualTo"
+              },
+              "name": "IncidentDetail"
+            }
+          ]
+        },
+        "conditionalVisibility": {
+          "parameterName": "selectedTab",
+          "comparison": "isEqualTo",
+          "value": "trends"
+        },
+        "name": "IncidentTrendGroup"
+      },
+      {
+        "type": 12,
+        "content": {
+          "version": "NotebookGroup/1.0",
+          "groupType": "editable",
+          "items": [
+            {
+              "type": 1,
+              "content": {
+                "json": "# Incident Responses"
+              },
+              "name": "text - 1"
+            },
+            {
+              "type": 1,
+              "content": {
+                "json": "Select the response type on the left to show all responses of that type. You can then click on the response to view all the incidents that have been updated/modified by that response type.\r\n\r\nOnly the first 1000 instances of the incident in the selected time range will displayed. You can click on the Query button to view the full list.",
+                "style": "info"
+              },
+              "name": "ResponseExplainText"
+            },
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "SecurityIncident \r\n| extend Updatedby = case(ModifiedBy startswith \"Playbook\", \"Playbook\",\r\n                        ModifiedBy startswith \"Automation rule\", \"Automation rule\",\r\n                        ModifiedBy)\r\n| where Updatedby in (\"Playbook\", \"Automation rule\", \"Microsoft 365 Defender\", \"Alert updated\", \"Incident created from alert\", \"Alert Grouping\", \"Fusion\")\r\n| summarize Count = count() by Updatedby\r\n| order by Count",
+                "size": 0,
+                "noDataMessage": "No Incident Responses detected in the selected time range.",
+                "timeContextFromParameter": "TimeRange",
+                "exportFieldName": "Updatedby",
+                "exportParameterName": "Updatedby",
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "crossComponentResources": [
+                  "{Workspace}"
+                ],
+                "gridSettings": {
+                  "formatters": [
+                    {
+                      "columnMatch": "Count",
+                      "formatter": 3,
+                      "formatOptions": {
+                        "palette": "blue"
+                      }
+                    }
+                  ],
+                  "labelSettings": [
+                    {
+                      "columnId": "Updatedby",
+                      "label": "Response"
+                    }
+                  ]
+                }
+              },
+              "customWidth": "50",
+              "name": "IncidentsUpdatedBy"
+            },
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "SecurityIncident \r\n| extend Updatedby = case(ModifiedBy startswith \"Playbook\", \"Playbook\",\r\n                        ModifiedBy startswith \"Automation rule\", \"Automation rule\",\r\n                        ModifiedBy)\r\n| where Updatedby == \"{Updatedby}\"\r\n| summarize ActionCount = count() by ModifiedBy",
+                "size": 0,
+                "timeContextFromParameter": "TimeRange",
+                "exportFieldName": "ModifiedBy",
+                "exportParameterName": "ModifiedBy",
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "crossComponentResources": [
+                  "{Workspace}"
+                ],
+                "gridSettings": {
+                  "formatters": [
+                    {
+                      "columnMatch": "ModifiedBy",
+                      "formatter": 0,
+                      "formatOptions": {
+                        "customColumnWidthSetting": "30ch"
+                      }
+                    },
+                    {
+                      "columnMatch": "ActionCount",
+                      "formatter": 3,
+                      "formatOptions": {
+                        "palette": "blue",
+                        "customColumnWidthSetting": "30ch"
+                      }
+                    }
+                  ],
+                  "labelSettings": [
+                    {
+                      "columnId": "ModifiedBy",
+                      "label": "Response"
+                    },
+                    {
+                      "columnId": "ActionCount",
+                      "label": "#"
+                    }
+                  ]
+                }
+              },
+              "customWidth": "50",
+              "conditionalVisibility": {
+                "parameterName": "Updatedby",
+                "comparison": "isNotEqualTo"
+              },
+              "name": "ModifiedByList"
+            },
+            {
+              "type": 3,
+              "content": {
+                "version": "KqlItem/1.0",
+                "query": "SecurityIncident \r\n| extend Updatedby = case(ModifiedBy startswith \"Playbook\", \"Playbook\",\r\n                        ModifiedBy startswith \"Automation rule\", \"Automation rule\",\r\n                        ModifiedBy)\r\n| where ModifiedBy == \"{ModifiedBy}\"\r\n| extend alertsCount = tostring(AdditionalData.alertsCount)\r\n| extend bookmarksCount = tostring(AdditionalData.bookmarksCount)\r\n| extend commentsCount = tostring(AdditionalData.commentsCount)\r\n| extend LinktoIncident = \"🔗 Link\"",
+                "size": 0,
+                "showAnalytics": true,
+                "timeContextFromParameter": "TimeRange",
+                "showExportToExcel": true,
+                "queryType": 0,
+                "resourceType": "microsoft.operationalinsights/workspaces",
+                "crossComponentResources": [
+                  "{Workspace}"
+                ],
+                "gridSettings": {
+                  "formatters": [
+                    {
+                      "columnMatch": "TenantId",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "IncidentName",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "Owner",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "AlertIds",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "BookmarkIds",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "Tasks",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "Labels",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "IncidentUrl",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "AdditionalData",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "ModifiedBy",
+                      "formatter": 5
+                    },
+                    {
+                      "columnMatch": "LinktoIncident",
+                      "formatter": 1,
+                      "formatOptions": {
+                        "linkColumn": "IncidentUrl",
+                        "linkTarget": "Url"
+                      }
+                    }
+                  ],
+                  "rowLimit": 1000
+                }
+              },
+              "conditionalVisibility": {
+                "parameterName": "ModifiedBy",
+                "comparison": "isNotEqualTo",
+                "value": ""
+              },
+              "name": "IncidentsModifiedByList"
+            }
+          ]
+        },
+        "conditionalVisibility": {
+          "parameterName": "selectedTab",
+          "comparison": "isEqualTo",
+          "value": "response"
+        },
+        "name": "Responses"
+      }
+    ],
+    "fallbackResourceIds": [
+      "Azure Monitor"
+    ],
+    "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+  }
