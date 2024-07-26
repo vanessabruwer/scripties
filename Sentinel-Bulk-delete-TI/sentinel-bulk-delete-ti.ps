@@ -1,0 +1,52 @@
+
+#Variables
+
+$subscription = 'subscription id here'
+$resourcegroup = 'resource group where workspace resides'
+$workspace = 'workspace name'
+$token = 'authentication token - can be generated via postman or similar'
+
+# you should not need to update anything below this line, unless you want to add additional logging or similar
+
+# Set header
+
+$headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+$headers.Add("Content-Type", "application/json")
+$headers.Add("Accept", "application/json")
+$headers.Add("Authorization", "Bearer $token")
+
+
+#Set body
+
+$body = @"
+{
+  "pageSize": "100"
+}
+"@
+
+
+#Set Get URL
+
+$url = "https://management.azure.com/subscriptions/$subscription/resourceGroups/$resourcegroup/providers/Microsoft.OperationalInsights/workspaces/$workspace/providers/Microsoft.SecurityInsights/threatIntelligence/main/queryIndicators?api-version=2024-03-01"
+
+
+
+$responses = Invoke-RestMethod -Method 'Post' -Uri $url -Headers $headers -Body $body
+
+$items = $responses.value
+
+foreach ($item in $items){
+
+    $tiid = $item.id
+    $tiname = $item.name
+
+# set delete URL
+$delurl = "https://management.azure.com/subscriptions/$subscription/resourceGroups/$resourcegroup/providers/Microsoft.OperationalInsights/workspaces/$workspace/providers/Microsoft.SecurityInsights/threatIntelligence/main/indicators/$tiname?api-version=2024-03-01"
+
+# delete the ti item
+$delete = Invoke-RestMethod -Method Delete -Uri $delurl -Headers $headers
+
+Write-Host "Threat indicator $name has been deleted"
+
+
+}
