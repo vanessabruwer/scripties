@@ -18,6 +18,9 @@ $body = @()
 # Set the file header
 $body += "Subscription, ResourceGroup, Workspace, AgentResourceId, Computer, AgentRG, AgentSub, OSType, Environment"
 
+# Import the Az.OperationalInsights module
+Import-Module Az.OperationalInsights
+
 
 #Connect to subscription
 $subs=get-azsubscription
