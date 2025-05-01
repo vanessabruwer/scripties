@@ -44,7 +44,7 @@ ComputerName = tolower(name),
 vmid = tolower(id)
 | extend IdentityType = iff(isempty(IdentityType), 'No Managed Identity Assigned', 'Managed Identity Assigned')
 | order by vmid asc
-| project ComputerName, vmid, location, resourceGroup, PowerStatus, OSType, IdentityType, subscriptionId
+| project ComputerName, vmid, location, resourceGroup, PowerStatus, OSType, tostring(IdentityType), subscriptionId
 | join kind=leftouter (
 resources
 | where type contains 'microsoft.compute/virtualmachines/extensions' and subscriptionId == '$subid'
@@ -81,7 +81,7 @@ vmid = tolower(vmid)
 | extend MMA = iff(isempty(MMA), 'Not Installed', MMA)
 | extend AMA = iff(isempty(AMA), 'Not Installed', AMA)
 | extend IdentityType = parse_json(IdentityType)
-| project subscriptionId, ComputerName, vmid, location, resourceGroup, OSType, PowerStatus, MMA, MMAStatus, IdentityType, AMA, AMAStatus, AMAVersion, Progress
+| distinct subscriptionId, ComputerName, vmid, location, resourceGroup, OSType, PowerStatus, MMA, MMAStatus, tostring(IdentityType), AMA, AMAStatus, AMAVersion, Progress
 | order by vmid
 "@
 
